@@ -7,12 +7,13 @@ export async function onRequest(context) {
         return new Response('Invalid HLS link!', { status: 400 });
     }
 
-    // Redirect to index.html with the URL as a query parameter
+    // Redirect to index.html with the HLS link as a query parameter
     return new Response(null, {
         status: 301,
         headers: {
-            Location: `/index.html?hls=${encodeURIComponent(path)}`,
+            Location: `/index.html?hls=${encodeURIComponent(path)}`, // Redirect to the video page with the HLS link
         },
     });
 }
+
 

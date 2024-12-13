@@ -47,6 +47,14 @@
             const video = document.getElementById('video');
             const errorDisplay = document.getElementById('error-display');
 
+            // Get the path for video
+            const hlsLink = window.location.pathname === '/video' ? 'https://dai.fancode.com/primary/112348_english_hls_6202ta-di/index.m3u8' : null;
+
+            if (!hlsLink) {
+                errorDisplay.textContent = 'Invalid video path!';
+                return;
+            }
+
             try {
                 // Initialize Shaka Player
                 const player = new shaka.Player(video);
@@ -55,9 +63,7 @@
                 player.addEventListener('error', onErrorEvent);
 
                 // Load your HLS streaming link
-                const manifestUri = 'https://dai.fancode.com/primary/112348_english_hls_6202ta-di/index.m3u8';
-
-                await player.load(manifestUri);
+                await player.load(hlsLink);
                 console.log('The video has been loaded successfully!');
             } catch (error) {
                 onError(error);
