@@ -2,14 +2,16 @@ export async function onRequest(context) {
     const { request, params } = context;
     const path = decodeURIComponent(params.path);
 
+    // Ensure the path starts with a valid URL
     if (!path.startsWith('http')) {
         return new Response('Invalid HLS link!', { status: 400 });
     }
 
+    // Redirect to index.html with the URL as a query parameter
     return new Response(null, {
         status: 301,
         headers: {
-            Location: `/index.html?url=${encodeURIComponent(path)}`, // Redirect to index.html with URL as a query parameter
+            Location: `/index.html?hls=${encodeURIComponent(path)}`,
         },
     });
 }
