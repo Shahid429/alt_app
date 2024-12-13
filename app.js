@@ -1,30 +1,18 @@
-import { videojs } from 'https://cdn.jsdelivr.net/npm/video.js@7.11.8/dist/video.js';
+import videojs from 'https://cdn.jsdelivr.net/npm/video.js@7.11.8/dist/video.js';
 
-// Video stream URLs for different routes
-const videoURLs = {
-  '/fan': 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
-  '/jio': 'https://dai.fancode.com/primary/112348_english_hls_6202ta-di/index.m3u8',
-};
-
-// Get the current URL path
-const path = window.location.pathname;
-
-// Determine the correct video URL
-const videoURL = videoURLs[path] || null;
-
-if (videoURL) {
-  // Initialize the Video.js player
+// Ensure the video player is initialized once the DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
   const player = videojs('video-player', {
-    autoplay: false,
-    controls: true,
-    sources: [{ src: videoURL, type: 'application/x-mpegURL' }],
-    playbackRates: [0.5, 1, 1.5, 2], // Add playback speed options
+    autoplay: true,  // Autoplay the video
+    controls: true,  // Show controls
+    sources: [{
+      src: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8', // Video source
+      type: 'application/x-mpegURL', // Specify HLS type
+    }],
+    playbackRates: [0.5, 1, 1.5, 2], // Playback speed options
   });
 
-  // Example: Log a message when the video starts playing
   player.on('play', () => {
-    console.log('Video started playing:', videoURL);
+    console.log('Video started playing');
   });
-} else {
-  document.getElementById('player-container').innerHTML = '<p>Invalid path or video not available.</p>';
-}
+});

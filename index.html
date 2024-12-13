@@ -4,18 +4,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Video Streaming</title>
-    <link href="https://cdn.jsdelivr.net/npm/video.js@7.11.8/dist/video-js.css" rel="stylesheet">
+    <title>Live Streams</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Open+Sans:wght@300&display=swap"
+        rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-image: url('https://wallpaperaccess.com/full/2709080.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Open Sans', sans-serif;
+            color: #ffffff;
+        }
+
+        .content {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-custom {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            color: white;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin: 10px;
+            transition: background 0.3s, transform 0.3s;
+            background-size: 200% auto;
+        }
+
+        .btn-custom:hover {
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+            background-size: 200% auto;
+            color: white;
+            text-shadow: none;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 1s linear infinite;
+            transform: scale(1.1);
+        }
+
+        @keyframes rainbow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        h1 {
+            font-family: 'Lobster', cursive;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="player-container">
-        <video id="video-player" class="video-js vjs-default-skin" controls preload="auto" width="640" height="360">
-            <source src="" type="application/x-mpegURL">
-        </video>
+    <div class="content">
+        <h1>Welcome to the Live Streams</h1>
+        <p>Click the buttons below to access the live streams:</p>
+        <button class="btn btn-custom" onclick="window.location.href='/fan.html'">Fan Stream</button>
+        <button class="btn btn-custom" onclick="window.location.href='/jio.html'">Jio Stream</button>
     </div>
-
-    <script type="module" src="app.js"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 
 </html>
