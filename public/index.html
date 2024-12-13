@@ -5,25 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Match Streaming</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.0/shaka-player.compiled.js"></script>
     <style>
         body {
             margin: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
             background-color: #000;
         }
 
-        #iframe-container {
+        #video-container {
             width: 100%;
             max-width: 960px;
             aspect-ratio: 16 / 9;
             background: #000;
         }
 
-        iframe {
+        video {
             width: 100%;
             height: 100%;
         }
@@ -37,29 +37,43 @@
 </head>
 
 <body>
-    <div id="iframe-container">
-        <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
+    <div id="video-container">
+        <video id="video" autoplay muted controls></video>
     </div>
     <div id="error-display"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const iframe = document.getElementById('video-player');
+        async function initApp() {
+            const video = document.getElementById('video');
             const errorDisplay = document.getElementById('error-display');
-            const hlsLink = decodeURIComponent(window.location.pathname.slice(1));
-
-            if (!hlsLink) {
-                errorDisplay.textContent = 'No HLS link provided!';
-                return;
-            }
 
             try {
-                // Set the iframe src with the HLS link
-                iframe.src = `https://www.livereacting.com/tools/hls-player-embed?url=${encodeURIComponent(hlsLink)}`;
+                // Initialize Shaka Player
+                const player = new shaka.Player(video);
+
+                // Add event listener for error handling
+                player.addEventListener('error', onErrorEvent);
+
+                // Load your HLS streaming link
+                const manifestUri = 'https://dai.fancode.com/primary/112348_english_hls_6202ta-di/index.m3u8';
+
+                await player.load(manifestUri);
+                console.log('The video has been loaded successfully!');
             } catch (error) {
-                errorDisplay.textContent = 'Failed to load the player!';
+                onError(error);
             }
-        });
+        }
+
+        function onErrorEvent(event) {
+            onError(event.detail);
+        }
+
+        function onError(error) {
+            console.error('Error code', error.code, 'object', error);
+            document.getElementById('error-display').textContent = 'An error occurred: ' + error.message;
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 
