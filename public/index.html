@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Match Streaming</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.0/shaka-player.compiled.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000;
+        }
+
+        #video-container {
+            width: 100%;
+            max-width: 960px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+        }
+
+        #error-display {
+            color: #f00;
+            font-family: Arial, sans-serif;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="video-container">
+        <video id="video" autoplay muted controls></video>
+    </div>
+    <div id="error-display"></div>
+
+    <script>
+        async function initApp() {
+            const video = document.getElementById('video');
+            const errorDisplay = document.getElementById('error-display');
+            const params = new URLSearchParams(window.location.search);
+            const path = window.location.pathname.replace('/', '');
+            const hlsLink = params.get('hls') || decodeURIComponent(path);
+
+            if (!hlsLink) {
+                errorDisplay.textContent = 'No HLS link provided!';
+                return;
+            }
+
+            try {
+                // Initialize Shaka Player
+                const player = new shaka.Player(video);
+
+                // Add event listener for error handling
+                player.addEventListener('error', onErrorEvent);
+
+                // Load the HLS link
+                await player.load(hlsLink);
+                console.log('The video has been loaded successfully!');
+            } catch (error) {
+                onError(error);
+            }
+        }
+
+        function onErrorEvent(event) {
+            onError(event.detail);
+        }
+
+        function onError(error) {
+            console.error('Error code', error.code, 'object', error);
+            document.getElementById('error-display').textContent = 'An error occurred: ' + error.message;
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+
+</html>

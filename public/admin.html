@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .output {
+            margin-top: 20px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Admin Panel</h1>
+    <p>Enter an HLS link to generate a video playback URL:</p>
+    <input type="text" id="hls-input" placeholder="Enter HLS link here">
+    <button onclick="generateUrl()">Generate URL</button>
+    <div class="output" id="output"></div>
+
+    <script>
+        function generateUrl() {
+            const hlsLink = document.getElementById('hls-input').value.trim();
+            if (!hlsLink) {
+                alert('Please enter a valid HLS link!');
+                return;
+            }
+
+            const encodedLink = encodeURIComponent(hlsLink);
+            const url = `${window.location.origin}/${encodedLink}`;
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = `<p>Generated URL:</p><a href="${url}" target="_blank">${url}</a>`;
+        }
+    </script>
+</body>
+
+</html>
