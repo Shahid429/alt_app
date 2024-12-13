@@ -1,4 +1,4 @@
-import * as videojs from 'https://cdn.jsdelivr.net/npm/video.js@7.11.8/dist/video.js';
+import { videojs } from 'https://cdn.jsdelivr.net/npm/video.js@7.11.8/dist/video.js';
 
 // Video stream URLs for different routes
 const videoURLs = {
@@ -14,7 +14,7 @@ const videoURL = videoURLs[path] || null;
 
 if (videoURL) {
   // Initialize the Video.js player
-  const player = videojs.default('video-player', {
+  const player = videojs('video-player', {
     autoplay: false,
     controls: true,
     sources: [{ src: videoURL, type: 'application/x-mpegURL' }],
