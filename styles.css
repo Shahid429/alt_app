@@ -38,6 +38,7 @@ body {
     height: 0;
     padding-bottom: 56.25%;
     /* Maintain 16:9 aspect ratio */
+    margin-bottom: 20px;
 }
 
 /* Video iframe styling */
@@ -51,7 +52,28 @@ body {
     /* Remove border */
 }
 
-/* Media queries for better responsiveness on mobile */
+/* Control Bar Styling */
+.controls {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+}
+
+.controls button,
+.controls input {
+    background-color: transparent;
+    border: none;
+    color: white;
+}
+
+.controls input[type="range"] {
+    width: 50%;
+}
+
+/* Mobile responsiveness */
 @media (max-width: 768px) {
     .video-container {
         max-width: 100%;
