@@ -1,4 +1,4 @@
-/* styles.css */
+/* Reset default margin and padding */
 body,
 html {
     margin: 0;
@@ -6,15 +6,36 @@ html {
     height: 100%;
 }
 
-#streaming {
+/* Style the body */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #2d2d2d;
+    /* Dark background */
+    color: white;
+    /* White text */
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    /* Full viewport height */
 }
 
+/* Video container styling */
+#streaming {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Styling for the iframe to ensure it's responsive */
 .video-container iframe {
     width: 100%;
-    max-width: 100%;
-    height: 100%;
+    max-width: 640px;
+    /* Maximum width of the iframe */
+    height: 360px;
+    /* Fixed height */
+    border: none;
+    /* Remove border */
 }

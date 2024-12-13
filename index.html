@@ -4,8 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Stream</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Live Stream Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2d2d2d;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            max-width: 640px;
+            height: 360px;
+            border: none;
+        }
+    </style>
 </head>
 
 <body>
