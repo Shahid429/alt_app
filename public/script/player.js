@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const video = document.getElementById('video');
+document.addEventListener('DOMContentLoaded', () => {
+    const iframe = document.getElementById('video-player');
     const errorDisplay = document.getElementById('error-display');
     const hlsLink = decodeURIComponent(window.location.pathname.slice(1));
 
@@ -9,16 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const player = new shaka.Player(video);
-        player.addEventListener('error', (event) => {
-            console.error('Shaka Player Error:', event.detail);
-            errorDisplay.textContent = `An error occurred: ${event.detail.message}`;
-        });
-
-        await player.load(hlsLink);
-        console.log('Video loaded successfully!');
+        // Set the iframe src with the HLS link
+        iframe.src = `https://www.livereacting.com/tools/hls-player-embed?url=${encodeURIComponent(hlsLink)}`;
     } catch (error) {
-        console.error('Error loading video:', error);
-        errorDisplay.textContent = 'Failed to load video!';
+        errorDisplay.textContent = 'Failed to load the player!';
     }
 });

@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Match Streaming</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.0/shaka-player.compiled.js"></script>
     <style>
         body {
             margin: 0;
@@ -17,14 +16,14 @@
             background-color: #000;
         }
 
-        #video-container {
+        #iframe-container {
             width: 100%;
             max-width: 960px;
             aspect-ratio: 16 / 9;
             background: #000;
         }
 
-        video {
+        iframe {
             width: 100%;
             height: 100%;
         }
@@ -38,18 +37,16 @@
 </head>
 
 <body>
-    <div id="video-container">
-        <video id="video" autoplay muted controls></video>
+    <div id="iframe-container">
+        <iframe id="video-player" src="" frameborder="0" allowfullscreen></iframe>
     </div>
     <div id="error-display"></div>
 
     <script>
-        async function initApp() {
-            const video = document.getElementById('video');
+        document.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.getElementById('video-player');
             const errorDisplay = document.getElementById('error-display');
-            const params = new URLSearchParams(window.location.search);
-            const path = window.location.pathname.replace('/', '');
-            const hlsLink = params.get('hls') || decodeURIComponent(path);
+            const hlsLink = decodeURIComponent(window.location.pathname.slice(1));
 
             if (!hlsLink) {
                 errorDisplay.textContent = 'No HLS link provided!';
@@ -57,30 +54,12 @@
             }
 
             try {
-                // Initialize Shaka Player
-                const player = new shaka.Player(video);
-
-                // Add event listener for error handling
-                player.addEventListener('error', onErrorEvent);
-
-                // Load the HLS link
-                await player.load(hlsLink);
-                console.log('The video has been loaded successfully!');
+                // Set the iframe src with the HLS link
+                iframe.src = `https://www.livereacting.com/tools/hls-player-embed?url=${encodeURIComponent(hlsLink)}`;
             } catch (error) {
-                onError(error);
+                errorDisplay.textContent = 'Failed to load the player!';
             }
-        }
-
-        function onErrorEvent(event) {
-            onError(event.detail);
-        }
-
-        function onError(error) {
-            console.error('Error code', error.code, 'object', error);
-            document.getElementById('error-display').textContent = 'An error occurred: ' + error.message;
-        }
-
-        document.addEventListener('DOMContentLoaded', initApp);
+        });
     </script>
 </body>
 

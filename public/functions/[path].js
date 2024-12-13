@@ -9,7 +9,8 @@ export async function onRequest(context) {
     return new Response(null, {
         status: 301,
         headers: {
-            Location: `/index.html?hls=${encodeURIComponent(path)}`,
+            Location: `/index.html?url=${encodeURIComponent(path)}`, // Redirect to index.html with URL as a query parameter
         },
     });
 }
+
