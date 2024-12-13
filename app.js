@@ -1,4 +1,4 @@
-import videojs from 'video.js';
+import videojs from 'https://cdn.jsdelivr.net/npm/video.js@7.11.8/dist/video.js';
 
 // Video stream URLs for different routes
 const videoURLs = {
