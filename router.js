@@ -1,6 +1,5 @@
 // router.js
 
-// Function to dynamically load the iframe based on the URL path
 function loadVideo() {
     const videoContainer = document.getElementById("videoContainer");
     const path = window.location.pathname;
@@ -20,11 +19,8 @@ function loadVideo() {
     // Create the iframe element dynamically
     const iframe = document.createElement("iframe");
     iframe.src = iframeSrc;
-    iframe.width = "640";
-    iframe.height = "360";
     iframe.frameBorder = "0";
     iframe.allowFullscreen = true;
-    iframe.style.maxWidth = "100%";
 
     // Clear previous content and append the new iframe
     videoContainer.innerHTML = "";
