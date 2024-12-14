@@ -1,6 +1,7 @@
+let urls = [];
+
 export async function onRequest(context) {
-    const { params, env } = context;
-    const urls = JSON.parse(await env.URLS_KV.get('urls') || '[]');
+    const { params } = context;
     const id = params.id;
     const videoUrl = urls[id]?.url;
 
