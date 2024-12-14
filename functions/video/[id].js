@@ -1,8 +1,8 @@
 export async function onRequest(context) {
     const { params, env } = context;
-    const urls = JSON.parse(env.URLS || '[]');
+    const urls = JSON.parse(await env.URLS_KV.get('urls') || '[]');
     const id = params.id;
-    const videoUrl = urls[id]?.url; // Use optional chaining to avoid errors if id is not found
+    const videoUrl = urls[id]?.url;
 
     if (!videoUrl) {
         return new Response('Video not found', { status: 404 });

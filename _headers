@@ -1,0 +1,10 @@
+/.netlify/functions/add-url
+  Access-Control-Allow-Origin: *
+  X-Robots-Tag: noindex
+
+/video/*
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
+
+https://rakhfc.pages.dev/*
+  X-Robots-Tag: noindex
