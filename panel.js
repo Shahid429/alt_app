@@ -10,7 +10,7 @@ function submitUrl() {
         .then(data => {
             const urlList = document.getElementById('url-list');
             const newItem = document.createElement('li');
-            newItem.innerHTML = `<a href="https://rough-sun-1675.shahidmir52141.workers.dev${data.path}" target="_blank">${data.path}</a>`;
+            newItem.innerHTML = `<a href="https://rakhfc.pages.dev${data.path}" target="_blank">${data.path}</a>`;
             urlList.appendChild(newItem);
         })
         .catch(error => console.error('Error:', error));
