@@ -4,45 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Streams</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Open+Sans:wght@300&display=swap"
-        rel="stylesheet">
-    <!-- AOS Library CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-    <!-- FontAwesome CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="styles.css" rel="stylesheet">
+    <title>Dynamic HLS Video Player Panel</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.2/plyr.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.6.2/plyr.polyfilled.js"></script>
 </head>
 
 <body>
-    <div class="content" data-aos="fade-up">
-        <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-        <h1 data-aos="fade-right"><i class="fas fa-cricket"></i> Welcome to the Live Streams</h1>
-        <p data-aos="fade-left">Click the buttons below to access the live streams:</p>
-        <button class="btn btn-custom" onclick="window.location.href='/fan.html'" data-aos="flip-left"><i
-                class="fas fa-fan"></i> Fan Stream</button>
-        <button class="btn btn-custom" onclick="window.location.href='/jio.html'" data-aos="flip-right"><i
-                class="fas fa-play-circle"></i> Jio Stream</button>
-    </div>
-    <footer data-aos="fade-up">
-        &copy; 2024 RakhFC. All rights reserved. This is a demo website for live streaming.
-    </footer>
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.6/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- AOS Library JS -->
-    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-    <!-- FontAwesome JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
-    <!-- Socket.io JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
-    <!-- Custom JS -->
-    <script src="script.js"></script>
+    <h1>Video Panel</h1>
+    <input type="text" id="hls-url" placeholder="Enter HLS Stream URL" style="width: 80%; padding: 8px;">
+    <button onclick="submitUrl()">Submit URL</button>
+    <ul id="url-list"></ul>
+    <script src="panel.js"></script>
 </body>
 
 </html>
