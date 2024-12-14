@@ -1,7 +1,7 @@
 function submitUrl() {
     const urlInput = document.getElementById('hls-url').value;
     if (urlInput) {
-        fetch('/.netlify/functions/add-url', {
+        fetch('https://rakhfc.pages.dev/add-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: urlInput })
