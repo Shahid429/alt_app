@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/.netlify/functions/add-url"
+  to = "/functions/add-url.js"
+  status = 200
+  force = true
