@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Video Player</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
+    <video id="videoPlayer" controls></video>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        var video = document.getElementById('videoPlayer');
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource('https://dai.google.com/linear/hls/pb/event/FXA8UuhlRtCNgWROnLHk-w/stream/bd9bb9af-de0d-4346-9c90-62b42eee7f31:SIN/variant/f537fee94e43b9e43657e8716d6d730f/bandwidth/3289416.m3u8');
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = 'dai.google.com/linear/hls/event/FXA8UuhlRtCNgWROnLHk-w/master.m3u8';
+            video.addEventListener('canplay', function () {
+                video.play();
+            });
+        }
+    </script>
+</body>
+
+</html>
