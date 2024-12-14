@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "routes": [
+    { "src": "/.*", "dest": "https://rough-sun-1675.shahidmir52141.workers.dev/" }
+  ]
+}

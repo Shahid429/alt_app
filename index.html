@@ -4,18 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic HLS Video Player Panel</title>
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.2/plyr.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdn.plyr.io/3.6.2/plyr.polyfilled.js"></script>
+    <title>Dynamic M3U8 Player</title>
+    <script src="https://vjs.zencdn.net/8.0.4/video.min.js"></script>
+    <link href="https://vjs.zencdn.net/8.0.4/video-js.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #video-player {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Video Panel</h1>
-    <input type="text" id="hls-url" placeholder="Enter HLS Stream URL" style="width: 80%; padding: 8px;">
-    <button onclick="submitUrl()">Submit URL</button>
-    <ul id="url-list"></ul>
-    <script src="panel.js"></script>
+    <h1>M3U8 Dynamic Player</h1>
+    <div id="status"></div>
+    <video id="video-player" class="video-js" controls preload="auto" width="640" height="360">
+        <source id="video-source" src="" type="application/x-mpegURL">
+    </video>
 </body>
 
 </html>
