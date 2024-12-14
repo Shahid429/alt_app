@@ -1,7 +1,7 @@
 function submitUrl() {
     const urlInput = document.getElementById('hls-url').value;
     if (urlInput) {
-        fetch('https://rakhfc.pages.dev/add-url', {
+        fetch('https://rough-sun-1675.shahidmir52141.workers.dev/add-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: urlInput })
