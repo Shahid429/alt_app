@@ -4,30 +4,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HLS Video Player</title>
-    <link href="styles.css" rel="stylesheet">
+    <title>Astro Stream Player</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
+    <!-- Add HLS.js -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0"></script>
+    <link href="logo.css" rel="stylesheet">
 </head>
 
 <body>
     <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    <video id="videoPlayer" controls></video>
+    <video id="video" controls></video>
 
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
     <script>
-        var video = document.getElementById('videoPlayer');
-        if (Hls.isSupported()) {
-            var hls = new Hls();
-            hls.loadSource('https://dai.google.com/linear/hls/pb/event/FXA8UuhlRtCNgWROnLHk-w/stream/bd9bb9af-de0d-4346-9c90-62b42eee7f31:SIN/variant/f537fee94e43b9e43657e8716d6d730f/bandwidth/3289416.m3u8');
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                video.play();
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = 'dai.google.com/linear/hls/event/FXA8UuhlRtCNgWROnLHk-w/master.m3u8';
-            video.addEventListener('canplay', function () {
-                video.play();
-            });
+        async function loadVideo() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const path = urlParams.get("path");
+
+                if (!path) {
+                    alert("Invalid path parameter.");
+                    return;
+                }
+
+                // Fetch the video URL from config.json
+                const response = await fetch("config.json");
+                const config = await response.json();
+                const m3u8Url = config[path];
+
+                if (!m3u8Url) {
+                    alert("Path not found in config.json.");
+                    return;
+                }
+
+                const videoElement = document.getElementById("video");
+
+                // Check if the browser supports HLS natively
+                if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = m3u8Url;
+                } else if (Hls.isSupported()) {
+                    // Use HLS.js for playback
+                    const hls = new Hls();
+                    hls.loadSource(m3u8Url);
+                    hls.attachMedia(videoElement);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        console.log("HLS manifest loaded.");
+                    });
+                    hls.on(Hls.Events.ERROR, function (event, data) {
+                        console.error("HLS.js error:", data);
+                    });
+                } else {
+                    alert("Your browser does not support HLS playback.");
+                }
+
+                // Initialize Plyr
+                const player = new Plyr(videoElement);
+                player.on("error", (event) => {
+                    console.error("Plyr error:", event);
+                });
+
+                console.log("Video URL loaded:", m3u8Url);
+            } catch (error) {
+                console.error("Error loading video:", error);
+                alert("Failed to load the video. Please check the console for details.");
+            }
         }
+
+        // Call the function when the page loads
+        window.onload = loadVideo;
     </script>
 </body>
 

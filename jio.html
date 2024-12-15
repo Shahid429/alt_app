@@ -1,16 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Jio Stream</title>
-    <link href="styles.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jio Stream Player</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+    <link href="logo.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        video {
+            width: 100%;
+            /* Ensures the video fills the container */
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 
 <body>
     <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    <iframe
-        src="https://www.livereacting.com/tools/hls-player-embed?url=https://dai.google.com/linear/hls/pb/event/FXA8UuhlRtCNgWROnLHk-w/stream/bd9bb9af-de0d-4346-9c90-62b42eee7f31:SIN/variant/f537fee94e43b9e43657e8716d6d730f/bandwidth/3289416.m3u8"
-        width="640px" height="360px" frameborder="0" allowfullscreen style="max-width: 100%;"></iframe>
+    <div class="video-container">
+        <video id="video" class="video-js vjs-default-skin" controls preload="auto" data-setup='{}'></video>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-vhs@latest/dist/videojs-vhs.min.js"></script>
+
+    <script>
+        // Function to load the video source dynamically
+        function loadVideo() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const path = urlParams.get("path"); // Extract the 'path' query parameter
+
+            // Fetch the config.json file
+            fetch('config.json')
+                .then(response => response.json())
+                .then(config => {
+                    // Find the video URL for the given path
+                    const m3u8Url = config[path];
+
+                    if (!m3u8Url) {
+                        alert('Path not found in config.');
+                        return;
+                    }
+
+                    // Initialize Video.js player with 'vhs' plugin (replaces 'contrib-hls')
+                    const player = videojs('video', {
+                        autoplay: true,
+                        controls: true,
+                        preload: 'auto',
+                        fluid: true, // Makes the player responsive
+                        techOrder: ['html5'],
+                        plugins: {
+                            vhs: {
+                                withCredentials: true,
+                                withCredentialsCrossOrigin: 'anonymous',
+                            }
+                        }
+                    });
+
+                    // Load the HLS source
+                    player.src({
+                        src: m3u8Url,
+                        type: 'application/x-mpegURL'
+                    });
+
+                    player.ready(() => {
+                        console.log('Video player is ready with URL:', m3u8Url);
+                    });
+
+                    player.on('error', () => {
+                        console.error('An error occurred while playing the video.');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading config:', error);
+                    alert('Failed to load video configuration.');
+                });
+        }
+
+        // Call the loadVideo function when the page loads
+        window.onload = loadVideo;
+    </script>
 </body>
 
 </html>

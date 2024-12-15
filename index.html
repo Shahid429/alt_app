@@ -23,18 +23,22 @@
         <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
         <h1 data-aos="fade-right"><i class="fas fa-cricket"></i> Welcome to the Live Streams</h1>
         <p data-aos="fade-left">Click the buttons below to access the live streams:</p>
-        <button class="btn btn-custom" onclick="window.location.href='/fancode.html'" data-aos="flip-left"><i
-                class="fas fa-fan"></i> Fancode Stream</button>
-        <button class="btn btn-custom" onclick="window.location.href='/jio.html'" data-aos="flip-right"><i
+
+        <!-- Updated buttons to pass 'path' parameter dynamically -->
+        <button class="btn btn-custom" onclick="window.location.href='fancode.html?path=fancode'"
+            data-aos="flip-left"><i class="fas fa-fan"></i> Fancode Stream</button>
+        <button class="btn btn-custom" onclick="window.location.href='jio.html?path=jio'" data-aos="flip-right"><i
                 class="fas fa-play-circle"></i> Jio Stream</button>
-                <button class="btn btn-custom" onclick="window.location.href='/astro.html'" data-aos="flip-right"><i
-                        class="fas fa-play-circle"></i> Astro 60Fps</button>
-                        <button class="btn btn-custom" onclick="window.location.href='/willow.html'" data-aos="flip-right"><i
-                                class="fas fa-play-circle"></i> Willow 4k</button>
+        <button class="btn btn-custom" onclick="window.location.href='astro.html?path=astro'" data-aos="flip-right"><i
+                class="fas fa-play-circle"></i> Astro 60Fps</button>
+        <button class="btn btn-custom" onclick="window.location.href='willow.html?path=willow'" data-aos="flip-right"><i
+                class="fas fa-play-circle"></i> Willow 4k</button>
     </div>
+
     <footer data-aos="fade-up">
         &copy; 2024 RakhFC. All rights reserved. This is a demo website for live streaming.
     </footer>
+
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.6/dist/umd/popper.min.js"></script>
