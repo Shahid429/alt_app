@@ -31,67 +31,49 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <script>
-    function loadVideo() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const path = urlParams.get("path");
+    // Check if HLS.js is supported by the browser
+    if (Hls.isSupported()) {
+      var video = document.getElementById('video');
+      var hls = new Hls();
+      var m3u8Url = 'https://off8.jismhaitokia.com:999/hls/fox501.m3u8?md5=7vPMRtVsUzBaF72Z6Fcz2g&expires=1734375158';
 
-      // Fetch video configuration from config.json
-      fetch('config.json')
-        .then(response => response.json())
-        .then(config => {
-          const m3u8Url = config[path];
+      // Load and attach the M3U8 stream to the video player
+      hls.loadSource(m3u8Url);
+      hls.attachMedia(video);
 
-          if (!m3u8Url) {
-            alert('Path not found in config.');
-            return;
+      // Handle events when the manifest is loaded and video is ready
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        video.play();
+      });
+
+      // Error handling for HLS.js
+      hls.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal) {
+          switch (data.fatal) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.error("Network error occurred: ", data);
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.error("Media error occurred: ", data);
+              break;
+            case Hls.ErrorTypes.OTHER_ERROR:
+              console.error("An unknown error occurred: ", data);
+              break;
+            default:
+              console.error("Fatal error: ", data);
+              break;
           }
-
-          const video = document.getElementById('video');
-
-          // Check if HLS.js is supported
-          if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(m3u8Url);
-            hls.attachMedia(video);
-
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-              video.play();
-            });
-
-            hls.on(Hls.Events.ERROR, function (event, data) {
-              if (data.fatal) {
-                switch (data.fatal) {
-                  case Hls.ErrorTypes.NETWORK_ERROR:
-                    console.error("Network error occurred: ", data);
-                    break;
-                  case Hls.ErrorTypes.MEDIA_ERROR:
-                    console.error("Media error occurred: ", data);
-                    break;
-                  default:
-                    console.error("An unknown error occurred: ", data);
-                    break;
-                }
-              }
-            });
-          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Fallback for Safari
-            video.src = m3u8Url;
-            video.play();
-          } else {
-            // If HLS is not supported
-            alert('Your browser does not support HLS. Please use Safari or install a compatible player like HLS.js.');
-          }
-
-          console.log('HLS player initialized with URL:', m3u8Url);
-        })
-        .catch(error => {
-          console.error('Error loading config:', error);
-          alert('Failed to load video configuration.');
-        });
+        }
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Fallback for Safari, which supports HLS natively
+      var video = document.getElementById('video');
+      video.src = 'https://off8.jismhaitokia.com:999/hls/fox501.m3u8?md5=7vPMRtVsUzBaF72Z6Fcz2g&expires=1734375158';
+      video.play();
+    } else {
+      // If HLS is not supported, show a message
+      alert('Your browser does not support HLS. Please use Safari or install a compatible player like HLS.js.');
     }
-
-    // Load the video when the page is ready
-    window.onload = loadVideo;
   </script>
 
 </body>
