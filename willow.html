@@ -1,113 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="logo.css" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        .logo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            z-index: 10;
-        }
-
-        video {
-            width: 80%;
-            max-width: 640px;
-            height: auto;
-            background: #000;
-            border: 1px solid #ccc;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HLS Video Player</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    video {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
-
 <body>
-    <img src="logs.png" alt="Logo" class="logo">
-    <h1>HLS Stream Player</h1>
-    <video id="video" controls></video>
 
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script>
-        function loadVideo() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const path = urlParams.get("path");
+  <h1>HLS Stream Player</h1>
+  <video id="video" controls></video>
 
-            // Fetch video configuration from config.json
-            fetch('config.json')
-                .then(response => response.json())
-                .then(config => {
-                    const m3u8Url = config[path];
+  <!-- Include HLS.js (JavaScript library to handle HLS in browsers) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-                    if (!m3u8Url) {
-                        alert('Path not found in config.');
-                        return;
-                    }
+  <script>
+    function loadVideo() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const path = urlParams.get("path");
 
-                    const video = document.getElementById('video');
+      // Fetch video configuration from config.json
+      fetch('config.json')
+        .then(response => response.json())
+        .then(config => {
+          const m3u8Url = config[path];
 
-                    // Check if HLS.js is supported
-                    if (Hls.isSupported()) {
-                        const hls = new Hls();
-                        hls.loadSource(m3u8Url);
-                        hls.attachMedia(video);
+          if (!m3u8Url) {
+            alert('Path not found in config.');
+            return;
+          }
 
-                        hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                            video.play();
-                        });
+          const video = document.getElementById('video');
 
-                        hls.on(Hls.Events.ERROR, function (event, data) {
-                            if (data.fatal) {
-                                switch (data.fatal) {
-                                    case Hls.ErrorTypes.NETWORK_ERROR:
-                                        console.error("Network error occurred:", data);
-                                        break;
-                                    case Hls.ErrorTypes.MEDIA_ERROR:
-                                        console.error("Media error occurred:", data);
-                                        break;
-                                    default:
-                                        console.error("An unknown error occurred:", data);
-                                        break;
-                                }
-                            }
-                        });
-                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        // Fallback for Safari
-                        video.src = m3u8Url;
-                        video.play();
-                    } else {
-                        // HLS not supported
-                        alert('Your browser does not support HLS. Please use Safari or a compatible player.');
-                    }
+          // Check if HLS.js is supported
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(m3u8Url);
+            hls.attachMedia(video);
 
-                    console.log('HLS player initialized with URL:', m3u8Url);
-                })
-                .catch(error => {
-                    console.error('Error loading config:', error);
-                    alert('Failed to load video configuration.');
-                });
-        }
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+              video.play();
+            });
 
-        // Load the video when the page is ready
-        window.onload = loadVideo;
-    </script>
+            hls.on(Hls.Events.ERROR, function (event, data) {
+              if (data.fatal) {
+                switch (data.fatal) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.error("Network error occurred: ", data);
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.error("Media error occurred: ", data);
+                    break;
+                  default:
+                    console.error("An unknown error occurred: ", data);
+                    break;
+                }
+              }
+            });
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Fallback for Safari
+            video.src = m3u8Url;
+            video.play();
+          } else {
+            // If HLS is not supported
+            alert('Your browser does not support HLS. Please use Safari or install a compatible player like HLS.js.');
+          }
+
+          console.log('HLS player initialized with URL:', m3u8Url);
+        })
+        .catch(error => {
+          console.error('Error loading config:', error);
+          alert('Failed to load video configuration.');
+        });
+    }
+
+    // Load the video when the page is ready
+    window.onload = loadVideo;
+  </script>
+
 </body>
-
 </html>
