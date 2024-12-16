@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
     <link href="logo.css" rel="stylesheet">
     <style>
         body {
@@ -23,19 +21,30 @@
             color: #333;
         }
 
-        #player {
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            z-index: 10;
+        }
+
+        video {
             width: 80%;
             max-width: 640px;
-            height: 360px;
+            height: auto;
             background: #000;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
 
 <body>
-    <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    <div id="player"></div>
+    <img src="logs.png" alt="Logo" class="logo">
+    <h1>HLS Stream Player</h1>
+    <video id="video" controls></video>
 
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         function loadVideo() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -52,17 +61,43 @@
                         return;
                     }
 
-                    // Initialize Clappr player
-                    const player = new Clappr.Player({
-                        source: m3u8Url,
-                        parentId: "#player",
-                        autoPlay: true,
-                        mute: false,
-                        height: '100%',
-                        width: '100%'
-                    });
+                    const video = document.getElementById('video');
 
-                    console.log('Clappr player initialized with URL:', m3u8Url);
+                    // Check if HLS.js is supported
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(m3u8Url);
+                        hls.attachMedia(video);
+
+                        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                            video.play();
+                        });
+
+                        hls.on(Hls.Events.ERROR, function (event, data) {
+                            if (data.fatal) {
+                                switch (data.fatal) {
+                                    case Hls.ErrorTypes.NETWORK_ERROR:
+                                        console.error("Network error occurred:", data);
+                                        break;
+                                    case Hls.ErrorTypes.MEDIA_ERROR:
+                                        console.error("Media error occurred:", data);
+                                        break;
+                                    default:
+                                        console.error("An unknown error occurred:", data);
+                                        break;
+                                }
+                            }
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        // Fallback for Safari
+                        video.src = m3u8Url;
+                        video.play();
+                    } else {
+                        // HLS not supported
+                        alert('Your browser does not support HLS. Please use Safari or a compatible player.');
+                    }
+
+                    console.log('HLS player initialized with URL:', m3u8Url);
                 })
                 .catch(error => {
                     console.error('Error loading config:', error);
