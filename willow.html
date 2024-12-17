@@ -1,89 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic HLS Video Player</title>
-
-    <!-- Include Video.js CSS -->
-    <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet">
-
-    <!-- Include Video.js JS -->
-    <script src="https://vjs.zencdn.net/7.10.2/video.js"></script>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <link href="logo.css" rel="stylesheet">
     <style>
-        #video-player {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px auto;
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
         }
-        #selector {
+
+        h1 {
+            color: #333;
+        }
+         .video-container {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            align-items: center;
         }
-        #selector button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #selector button:hover {
-            background-color: #0056b3;
+
+        #player {
+            width: 80%;
+            max-width: 640px;
+            height: 360px;
+            background: #000;
         }
     </style>
 </head>
+
 <body>
+    <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
+    <div id="player"></div>
 
-    <h1>Dynamic HLS Video Player</h1>
-
-    <!-- Selector for Dynamic Links -->
-    <div id="selector">
-        <button onclick="loadStream('fancode')">Fancode</button>
-        <button onclick="loadStream('jio')">Jio</button>
-        <button onclick="loadStream('astro')">Astro</button>
-        <button onclick="loadStream('willow')">Willow</button>
-    </div>
-
-    <!-- Video.js Player -->
-    <video id="video-player" class="video-js vjs-default-skin" controls preload="auto">
-        <source src="" type="application/x-mpegURL">
-        Your browser does not support the video tag.
-    </video>
-
-    <!-- Script to Handle Dynamic Fetching -->
     <script>
-        // JSON data (this can also be fetched from a file using an HTTP request)
-        const streams = {
-            "fancode": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-            "jio": "https://off6.jismhaitokia.com:999/hls/fox501.m3u8?md5=cnn_KMNYTVzZ2H71PW2g6g&expires=1734384160",
-            "astro": "https://prod-sports-eng-gm.jiocinema.com/hls/live/2100306/hd_akamai_merged_avc_eng_cricket_m1_151224/master.m3u8",
-            "willow": "https://off6.jismhaitokia.com:999/hls/fox501.m3u8?md5=cnn_KMNYTVzZ2H71PW2g6g&expires=1734384160"
-        };
+        function loadVideo() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const path = urlParams.get("path");
 
-        // Initialize Video.js Player
-        const player = videojs('video-player', {
-            techOrder: ['html5']
-        });
+            // Fetch video configuration from config.json
+            fetch('config.json')
+                .then(response => response.json())
+                .then(config => {
+                    const m3u8Url = config[path];
 
-        // Function to load a stream dynamically
-        function loadStream(key) {
-            if (streams[key]) {
-                const streamUrl = streams[key];
-                // Update player source dynamically
-                player.src({
-                    src: streamUrl,
-                    type: 'application/x-mpegURL'
+                    if (!m3u8Url) {
+                        alert('Path not found in config.');
+                        return;
+                    }
+
+                    // Initialize Clappr player
+                    const player = new Clappr.Player({
+                        source: m3u8Url,
+                        parentId: "#player",
+                        autoPlay: true,
+                        mute: false,
+                        height: '100%',
+                        width: '100%'
+                    });
+
+                    console.log('Clappr player initialized with URL:', m3u8Url);
+                })
+                .catch(error => {
+                    console.error('Error loading config:', error);
+                    alert('Failed to load video configuration.');
                 });
-                player.play();
-            } else {
-                alert("Stream not found!");
-            }
         }
-    </script>
 
+        // Load the video when the page is ready
+        window.onload = loadVideo;
+    </script>
 </body>
+
 </html>
