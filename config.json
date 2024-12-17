@@ -1,6 +1,6 @@
 {
-  "fancode": "https://m118753.protect-cdn.net/live/m4-720p.m3u8",
-  "jio": "https://florcd.pricesaskeloadsc.com/tnt_3_gb/tracks-v1a1/mono.m3u8?token=da45359315a25eee95ad0043396a8730dbb39bbf-8c-1734450322-1734414322",
+  "fancode": "https://prod-sportsp-eng.jiocinema.com/hls/live/2100307/hd_akamai_merged_avc_eng_cricket_m9_171224/mobile_master.m3u8?hdnts=st=1734437326~exp=1734444526~acl=/hls/live/2100307/hd_akamai_merged_avc_eng_cricket_m9_171224/*~id=1dc089a8497b4db3a8d62e99f00599bd~data=rqId=e0071603-6365-42f8-8b29-22b7afc03003.1~hmac=30f21526d6881cd2886a72908fbce6aa346c9d6c4253d54a3a715fd63a65afb4",
+  "jio": "https://prod-sportsp-eng.jiocinema.com/hls/live/2100307/hd_akamai_merged_avc_eng_cricket_m9_171224/mobile_master.m3u8?hdnts=st=1734437326~exp=1734444526~acl=/hls/live/2100307/hd_akamai_merged_avc_eng_cricket_m9_171224/*~id=1dc089a8497b4db3a8d62e99f00599bd~data=rqId=e0071603-6365-42f8-8b29-22b7afc03003.1~hmac=30f21526d6881cd2886a72908fbce6aa346c9d6c4253d54a3a715fd63a65afb4",
   "astro": "https://vkvsd14.okcdn.ru/cmaf/7333724293676/sig/Q4AWMsBSn5Y/expires/1734491746908/srcIp/172.69.95.124/urls/45.136.20.36/clientType/13/srcAg/CHROME/mid/7917468068652/get/hls_7917468068652.J40GMVFt0Z4.m3u8",
   "willow": "https://florcd.pricesaskeloadsc.com/tnt_3_gb/tracks-v1a1/mono.m3u8?token=da45359315a25eee95ad0043396a8730dbb39bbf-8c-1734450322-1734414322"
 }
