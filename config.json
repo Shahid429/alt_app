@@ -1,6 +1,7 @@
+
 {
-  "fancode": "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-  "jio": "https://prod-sports-eng-cf.jiocinema.com/hls/live/2100307/hd_akamai_merged_avc_eng_cricket_m9_171224/master_p2.m3u8",
-  "astro": "https://prod-sports-eng-gm.jiocinema.com/hls/live/2100306/hd_akamai_merged_avc_eng_cricket_m1_151224/master.m3u8",
-  "willow": "https://prod-sports-eng-cf.jiocinema.com/hls/live/2100307/hd_akamai_merged_avc_eng_cricket_m9_171224/master_p2.m3u8"
+  "fancode": "https://dai.fancode.com/primary/116279_english_hls_6566ta-no/index.m3u8",
+  "jio": "https://amg01269-amg01269c1-willowtv-us-5479.playouts.now.amagi.tv/playlist/amg01269-willowtvfast-willowplus-willowtvus/playlist.m3u8",
+  "astro": "https://amg01269-amg01269c1-willowtv-us-5479.playouts.now.amagi.tv/playlist/amg01269-willowtvfast-willowplus-willowtvus/playlist.m3u8",
+  "willow": "https://cors-anywhere.herokuapp.com/https://dai.fancode.com/primary/116279_english_hls_6566ta-no/index.m3u8"
 }
