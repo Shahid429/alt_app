@@ -11,9 +11,9 @@
     <link href="logo.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="dark-mode with-custom-scrollbars with-custom-css-scrollbars">
     <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    <video id="video" controls></video>
+    <video id="video" controls preload="metadata" poster="https://i.ibb.co/mBgdw0v/IMG-20240610-184601.jpg" class="plyr"></video>
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
     <script>
@@ -57,8 +57,33 @@
                     alert("Your browser does not support HLS playback.");
                 }
 
-                // Initialize Plyr
-                const player = new Plyr(videoElement);
+                // Initialize Plyr with quality selector (if available)
+                const player = new Plyr(videoElement, {
+                    quality: {
+                        default: 0, // Default quality level
+                        options: [], // Quality levels will be populated dynamically
+                        forced: true,
+                        onChange: (quality) => {
+                            if (Hls.isSupported()) {
+                                hls.currentLevel = quality;
+                            }
+                        },
+                    },
+                });
+
+                // Add quality levels if HLS.js is used
+                if (Hls.isSupported()) {
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        const levels = hls.levels.map((level, index) => ({
+                            value: index,
+                            label: `${level.height}p`,
+                        }));
+                        player.options.quality.options = levels;
+                        player.options.quality.default = levels[0].value;
+                        player.updateQualityOptions();
+                    });
+                }
+
                 player.on("error", (event) => {
                     console.error("Plyr error:", event);
                 });
