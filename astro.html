@@ -1,19 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Astro Stream Player</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
-    <!-- Add HLS.js -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
     <link href="logo.css" rel="stylesheet">
+    <style>
+        /* Loading animation */
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Hide video until it's ready */
+        #video {
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="dark-mode with-custom-scrollbars with-custom-css-scrollbars">
     <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    <video id="video" controls preload="metadata" poster="https://i.ibb.co/mBgdw0v/IMG-20240610-184601.jpg" class="plyr"></video>
+    
+    <!-- Loading animation -->
+    <div id="loading" class="loading-spinner"></div>
+
+    <video id="video" controls preload="metadata" class="plyr"></video>
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
     <script>
@@ -27,7 +54,6 @@
                     return;
                 }
 
-                // Fetch the video URL from config.json
                 const response = await fetch("config.json");
                 const config = await response.json();
                 const m3u8Url = config[path];
@@ -40,78 +66,40 @@
                 console.log("Video URL loaded:", m3u8Url);
 
                 const videoElement = document.getElementById("video");
-                let hls; // Declare hls variable in a broader scope
+                let hls;
 
-                // Check if the browser supports HLS natively
                 if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
                     videoElement.src = m3u8Url;
                 } else if (Hls.isSupported()) {
-                    // Use HLS.js for playback
-                    hls = new Hls({
-                        maxMaxBufferLength: 100, // Original HLS.js configuration
-                        xhrSetup: function (xhr, url) {
-                            // Add headers to bypass restrictions
-                            xhr.setRequestHeader("Referer", "https://yourdomain.com/"); // Replace with your domain
-                            xhr.setRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-                        },
-                    });
+                    hls = new Hls();
                     hls.loadSource(m3u8Url);
                     hls.attachMedia(videoElement);
 
-                    // Listen for MANIFEST_PARSED event to extract quality levels
                     hls.on(Hls.Events.MANIFEST_PARSED, function () {
                         console.log("HLS manifest loaded.");
-
-                        // Extract quality levels from the manifest
-                        const levels = hls.levels.map((level, index) => ({
-                            value: index, // Use the index as the value
-                            label: `${level.height}p`, // Use the height as the label
-                        }));
-
-                        // Initialize Plyr with quality options
-                        const player = new Plyr(videoElement, {
-                            quality: {
-                                default: 0, // Default quality level (first in the list)
-                                options: levels, // Pass the quality levels
-                                forced: true, // Force quality selection
-                                onChange: (quality) => {
-                                    // Change the quality level when the user selects a new option
-                                    hls.currentLevel = quality;
-                                },
-                            },
-                        });
-
-                        console.log("Quality levels:", levels);
+                        new Plyr(videoElement);
                     });
 
                     hls.on(Hls.Events.ERROR, function (event, data) {
                         console.error("HLS.js error:", data);
-                        if (data.fatal) {
-                            switch (data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                    alert("Network error. Please check your connection.");
-                                    break;
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    alert("Media error. The video might be unavailable.");
-                                    break;
-                                default:
-                                    alert("An error occurred. Please try again later.");
-                                    break;
-                            }
-                        }
                     });
                 } else {
                     alert("Your browser does not support HLS playback.");
                 }
+
+                // Show video and hide loading spinner when ready
+                videoElement.addEventListener('canplay', function () {
+                    document.getElementById("loading").style.display = "none";
+                    videoElement.style.display = "block";
+                });
+
             } catch (error) {
                 console.error("Error loading video:", error);
-                alert("Failed to load the video. Please check the console for details.");
+                alert("Failed to load the video.");
             }
         }
 
-        // Call the function when the page loads
         window.onload = loadVideo;
     </script>
 </body>
-
 </html>
