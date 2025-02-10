@@ -17,19 +17,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
     <script>
-        // Domain restriction logic
-        const allowedDomain = "alt-app-5b1.pages.dev"; // Replace with your allowed domain
-        const currentDomain = window.location.hostname;
-
-        if (currentDomain !== allowedDomain) {
-            window.location.href = "https://telegram.me/livecrichdofficial";
-        }
-
-        // Telegram redirect popup
-        if (confirm("Join Our Telegram Channel @livecrichdofficial")) {
-            window.location.href = "https://telegram.me/livecrichdofficial";
-        }
-
         async function loadVideo() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -70,9 +57,33 @@
                     });
                     hls.loadSource(m3u8Url);
                     hls.attachMedia(videoElement);
+
+                    // Listen for MANIFEST_PARSED event to extract quality levels
                     hls.on(Hls.Events.MANIFEST_PARSED, function () {
                         console.log("HLS manifest loaded.");
+
+                        // Extract quality levels from the manifest
+                        const levels = hls.levels.map((level, index) => ({
+                            value: index, // Use the index as the value
+                            label: `${level.height}p`, // Use the height as the label
+                        }));
+
+                        // Initialize Plyr with quality options
+                        const player = new Plyr(videoElement, {
+                            quality: {
+                                default: 0, // Default quality level (first in the list)
+                                options: levels, // Pass the quality levels
+                                forced: true, // Force quality selection
+                                onChange: (quality) => {
+                                    // Change the quality level when the user selects a new option
+                                    hls.currentLevel = quality;
+                                },
+                            },
+                        });
+
+                        console.log("Quality levels:", levels);
                     });
+
                     hls.on(Hls.Events.ERROR, function (event, data) {
                         console.error("HLS.js error:", data);
                         if (data.fatal) {
@@ -92,37 +103,6 @@
                 } else {
                     alert("Your browser does not support HLS playback.");
                 }
-
-                // Initialize Plyr with quality selector (if available)
-                const player = new Plyr(videoElement, {
-                    quality: {
-                        default: 0, // Default quality level
-                        options: [], // Quality levels will be populated dynamically
-                        forced: true,
-                        onChange: (quality) => {
-                            if (Hls.isSupported() && hls) { // Check if hls is defined
-                                hls.currentLevel = quality;
-                            }
-                        },
-                    },
-                });
-
-                // Add quality levels if HLS.js is used
-                if (Hls.isSupported() && hls) { // Check if hls is defined
-                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                        const levels = hls.levels.map((level, index) => ({
-                            value: index,
-                            label: `${level.height}p`,
-                        }));
-                        player.options.quality.options = levels;
-                        player.options.quality.default = levels[0].value;
-                        player.updateQualityOptions();
-                    });
-                }
-
-                player.on("error", (event) => {
-                    console.error("Plyr error:", event);
-                });
             } catch (error) {
                 console.error("Error loading video:", error);
                 alert("Failed to load the video. Please check the console for details.");
