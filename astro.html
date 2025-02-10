@@ -17,19 +17,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
     <script>
-        // Domain restriction logic
-        const allowedDomain = "shz.al"; // Replace with your allowed domain
-        const currentDomain = window.location.hostname;
-
-        if (currentDomain !== allowedDomain) {
-            window.location.href = "https://telegram.me/livecrichdofficial";
-        }
-
-        // Telegram redirect popup
-        if (confirm("Join Our Telegram Channel @livecrichdofficial")) {
-            window.location.href = "https://telegram.me/livecrichdofficial";
-        }
-
         async function loadVideo() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -61,7 +48,6 @@
                 } else if (Hls.isSupported()) {
                     // Use HLS.js for playback
                     hls = new Hls({
-                        maxMaxBufferLength: 100, // Original HLS.js configuration
                         xhrSetup: function (xhr, url) {
                             // Add headers to bypass restrictions
                             xhr.setRequestHeader("Referer", "https://yourdomain.com/"); // Replace with your domain
