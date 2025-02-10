@@ -7,7 +7,7 @@
     <title>Astro Stream Player</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
     <!-- Add HLS.js -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
     <link href="logo.css" rel="stylesheet">
 </head>
 
@@ -38,13 +38,14 @@
                 }
 
                 const videoElement = document.getElementById("video");
+                let hls; // Declare hls variable in a broader scope
 
                 // Check if the browser supports HLS natively
                 if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
                     videoElement.src = m3u8Url;
                 } else if (Hls.isSupported()) {
                     // Use HLS.js for playback
-                    const hls = new Hls();
+                    hls = new Hls(); // Initialize hls here
                     hls.loadSource(m3u8Url);
                     hls.attachMedia(videoElement);
                     hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -64,7 +65,7 @@
                         options: [], // Quality levels will be populated dynamically
                         forced: true,
                         onChange: (quality) => {
-                            if (Hls.isSupported()) {
+                            if (Hls.isSupported() && hls) { // Check if hls is defined
                                 hls.currentLevel = quality;
                             }
                         },
@@ -72,7 +73,7 @@
                 });
 
                 // Add quality levels if HLS.js is used
-                if (Hls.isSupported()) {
+                if (Hls.isSupported() && hls) { // Check if hls is defined
                     hls.on(Hls.Events.MANIFEST_PARSED, function () {
                         const levels = hls.levels.map((level, index) => ({
                             value: index,
