@@ -17,6 +17,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
     <script>
+        // Domain restriction logic
+        const allowedDomain = "shz.al"; // Replace with your allowed domain
+        const currentDomain = window.location.hostname;
+
+        if (currentDomain !== allowedDomain) {
+            window.location.href = "https://telegram.me/livecrichdofficial";
+        }
+
+        // Telegram redirect popup
+        if (confirm("Join Our Telegram Channel @livecrichdofficial")) {
+            window.location.href = "https://telegram.me/livecrichdofficial";
+        }
+
         async function loadVideo() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -37,6 +50,8 @@
                     return;
                 }
 
+                console.log("Video URL loaded:", m3u8Url);
+
                 const videoElement = document.getElementById("video");
                 let hls; // Declare hls variable in a broader scope
 
@@ -45,7 +60,14 @@
                     videoElement.src = m3u8Url;
                 } else if (Hls.isSupported()) {
                     // Use HLS.js for playback
-                    hls = new Hls(); // Initialize hls here
+                    hls = new Hls({
+                        maxMaxBufferLength: 100, // Original HLS.js configuration
+                        xhrSetup: function (xhr, url) {
+                            // Add headers to bypass restrictions
+                            xhr.setRequestHeader("Referer", "https://yourdomain.com/"); // Replace with your domain
+                            xhr.setRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+                        },
+                    });
                     hls.loadSource(m3u8Url);
                     hls.attachMedia(videoElement);
                     hls.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -53,6 +75,19 @@
                     });
                     hls.on(Hls.Events.ERROR, function (event, data) {
                         console.error("HLS.js error:", data);
+                        if (data.fatal) {
+                            switch (data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    alert("Network error. Please check your connection.");
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    alert("Media error. The video might be unavailable.");
+                                    break;
+                                default:
+                                    alert("An error occurred. Please try again later.");
+                                    break;
+                            }
+                        }
                     });
                 } else {
                     alert("Your browser does not support HLS playback.");
@@ -88,8 +123,6 @@
                 player.on("error", (event) => {
                     console.error("Plyr error:", event);
                 });
-
-                console.log("Video URL loaded:", m3u8Url);
             } catch (error) {
                 console.error("Error loading video:", error);
                 alert("Failed to load the video. Please check the console for details.");
