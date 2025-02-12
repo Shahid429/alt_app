@@ -3,12 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Stream Player</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
-    <link href="logo.css" rel="stylesheet">
+    <title>Shaka Player Streaming</title>
+    
+    <!-- Shaka Player UI CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
+    
     <style>
-        /* Loading animation */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #player-container {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+        }
+
+        .shaka-video-container {
+            height: 100%;
+            width: 100%;
+        }
+
+        video {
+            height: 100%;
+            width: 100%;
+        }
+
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: auto;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .shaka-spinner-container { 
+            display: none; 
+        }
+
         .loading-spinner {
             position: absolute;
             top: 50%;
@@ -20,6 +61,7 @@
             border-top-color: white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            z-index: 20;
         }
 
         @keyframes spin {
@@ -27,79 +69,141 @@
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        /* Hide video until it's ready */
-        #video {
+        .error-message {
+            position: absolute;
+            text-align: center;
+            color: #ff4444;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 4px;
             display: none;
+            z-index: 20;
         }
     </style>
 </head>
-
-<body class="dark-mode with-custom-scrollbars with-custom-css-scrollbars">
-    <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    
-    <!-- Loading animation -->
+<body>
+    <img src="logs.png" alt="Logo" class="logo">
     <div id="loading" class="loading-spinner"></div>
+    
+    <div id="player-container">
+        <div data-shaka-player-container class="shaka-video-container">
+            <video autoplay data-shaka-player id="video"></video>
+        </div>
+    </div>
+    <div id="error-display" class="error-message"></div>
 
-    <video id="video" controls preload="metadata" class="plyr"></video>
-
-    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.min.js"></script>
+    <!-- Shaka Player -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
+    
     <script>
+        let player = null;
+        let ui = null;
+
         async function loadVideo() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const path = urlParams.get("path");
 
                 if (!path) {
-                    alert("Invalid path parameter.");
+                    showError("Invalid path parameter.");
                     return;
                 }
 
                 const response = await fetch("config.json");
                 const config = await response.json();
-                const m3u8Url = config[path];
+                const manifestUri = config[path];
 
-                if (!m3u8Url) {
-                    alert("Path not found in config.json.");
+                if (!manifestUri) {
+                    showError("Path not found in config.json.");
                     return;
                 }
 
-                console.log("Video URL loaded:", m3u8Url);
-
-                const videoElement = document.getElementById("video");
-                let hls;
-
-                if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                    videoElement.src = m3u8Url;
-                } else if (Hls.isSupported()) {
-                    hls = new Hls();
-                    hls.loadSource(m3u8Url);
-                    hls.attachMedia(videoElement);
-
-                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                        console.log("HLS manifest loaded.");
-                        new Plyr(videoElement);
-                    });
-
-                    hls.on(Hls.Events.ERROR, function (event, data) {
-                        console.error("HLS.js error:", data);
-                    });
-                } else {
-                    alert("Your browser does not support HLS playback.");
-                }
-
-                // Show video and hide loading spinner when ready
-                videoElement.addEventListener('canplay', function () {
-                    document.getElementById("loading").style.display = "none";
-                    videoElement.style.display = "block";
-                });
+                console.log("Video URL loaded:", manifestUri);
+                await initPlayer(manifestUri);
 
             } catch (error) {
                 console.error("Error loading video:", error);
-                alert("Failed to load the video.");
+                showError("Failed to load the video.");
             }
         }
 
-        window.onload = loadVideo;
+        async function initPlayer(manifestUri) {
+            shaka.polyfill.installAll();
+
+            if (shaka.Player.isBrowserSupported()) {
+                try {
+                    const video = document.getElementById('video');
+                    const videoContainer = document.querySelector('[data-shaka-player-container]');
+                    
+                    player = new shaka.Player(video);
+                    ui = new shaka.ui.Overlay(player, videoContainer, video);
+
+                    player.configure({
+                        streaming: {
+                            bufferingGoal: 60,
+                            rebufferingGoal: 30,
+                            bufferBehind: 30
+                        },
+                        abr: {
+                            enabled: true,
+                            defaultBandwidthEstimate: 1000000
+                        }
+                    });
+
+                    player.addEventListener('error', onPlayerError);
+                    player.addEventListener('loaded', onPlayerLoaded);
+
+                    await player.load(manifestUri);
+                    console.log('Video loaded successfully');
+                    hideError();
+                    document.getElementById("loading").style.display = "none";
+
+                } catch (error) {
+                    onPlayerError(error);
+                }
+            } else {
+                showError('Browser not supported!');
+            }
+        }
+
+        function onPlayerError(error) {
+            console.error('Error code', error.code, 'object', error);
+            showError('Error loading video: ' + error.message);
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function onPlayerLoaded() {
+            console.log('Video loaded and ready to play');
+            hideError();
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function showError(message) {
+            const errorDisplay = document.getElementById('error-display');
+            errorDisplay.textContent = message;
+            errorDisplay.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorDisplay = document.getElementById('error-display');
+            errorDisplay.style.display = 'none';
+        }
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                if (player && player.isPlaying()) {
+                    player.pause();
+                }
+            } else {
+                if (player && !player.isPlaying()) {
+                    player.play();
+                }
+            }
+        });
+
+        // Initialize when the document is ready
+        document.addEventListener('DOMContentLoaded', loadVideo);
     </script>
 </body>
 </html>
