@@ -39,6 +39,19 @@
         .shaka-spinner-container { 
             display: none; 
         }
+
+        /* Add error message styling */
+        #error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -46,11 +59,11 @@
         <div data-shaka-player-container class="shaka-video-container">
             <video autoplay data-shaka-player id="video" poster="#"></video>
         </div>
+        <div id="error-message"></div>
     </div>
     <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
     <script>
-        var manifestUri, initPlayer, onPlayerErrorEvent, onPlayerError, onUIErrorEvent, initFailed;
         (function() {
             shaka.polyfill.installAll();
 
@@ -58,9 +71,23 @@
                 try {
                     const urlParams = new URLSearchParams(window.location.search);
                     const path = urlParams.get('path');
-                    const response = await fetch('config.json');
-                    const config = await response.json();
-                    manifestUri = config[path];
+
+                    if (!path) {
+                        throw new Error('No channel path specified');
+                    }
+
+                    // Fetch m3u8 links from the external JSON file
+                    const m3u8Response = await fetch('https://raw.githubusercontent.com/Shahid429/streaming-app/0634e7bb4faf14e9ece973e43a81a130a350256f/public/m3u8Links.json');
+                    if (!m3u8Response.ok) {
+                        throw new Error('Failed to fetch stream links');
+                    }
+
+                    const m3u8Links = await m3u8Response.json();
+                    const manifestUri = m3u8Links[path];
+
+                    if (!manifestUri) {
+                        throw new Error(`Stream not found for path: ${path}`);
+                    }
 
                     if (shaka.Player.isBrowserSupported()) {
                         const video = document.getElementById('video');
@@ -112,6 +139,7 @@
 
                         player.addEventListener('error', function(event) {
                             console.error('Error code', event.detail.code, 'object', event.detail);
+                            showError(`Player error: ${event.detail.message}`);
                         });
 
                         await player.load(manifestUri);
@@ -138,12 +166,18 @@
 
                         console.log('Player initialized successfully');
                     } else {
-                        console.error('Browser not supported!');
+                        throw new Error('Browser not supported!');
                     }
                 } catch (error) {
                     console.error('Error initializing player:', error);
-                    throw error;
+                    showError(error.message);
                 }
+            }
+
+            function showError(message) {
+                const errorElement = document.getElementById('error-message');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
             }
 
             // Initialize when document is ready
