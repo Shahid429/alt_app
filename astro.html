@@ -50,136 +50,27 @@
     <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
     <script>
-        var initApp = (function() {
-            var _0x2c7f = [
-                'video',
-                'getElementById',
-                '[data-shaka-player-container]',
-                'querySelector',
-                'getNetworkingEngine',
-                'registerRequestFilter',
-                'addEventListener',
-                'error',
-                'load',
-                'configure',
-                'Player',
-                'Overlay',
-                'ui',
-                'polyfill',
-                'installAll',
-                'isBrowserSupported'
-            ];
+        (function(){var a=['getNetworkingEngine','configure','ui','Player','registerRequestFilter','addEventListener','installAll','getElementById','querySelector','error','load'];(function(b,e){var f=function(g){while(--g){b['push'](b['shift']());}};f(++e);}(a,0x15b));var b=function(c,d){c=c-0x0;var e=a[c];return e;};async function initPlayer(){try{const urlParams=new URLSearchParams(window['location']['search']);const path=urlParams['get']('path');const response=await fetch('config.json');const config=await response['json']();const manifestUri=config[path];shaka['polyfill'][b('0x6')]();if(shaka[b('0x3')]['isBrowserSupported']()){const video=document[b('0x7')]('video');const container=document[b('0x8')]('[data-shaka-player-container]');const player=new shaka['Player'](video);const ui=new shaka[b('0x2')]['Overlay'](player,container,video);player[b('0x1')]({'streaming':{'bufferingGoal':0x3c,'rebufferingGoal':0x1e,'bufferBehind':0x1e,'retryParameters':{'timeout':0x0,'maxAttempts':0x5,'baseDelay':0x3e8,'backoffFactor':0x2,'fuzzFactor':0.5}},'manifest':{'retryParameters':{'timeout':0x0,'maxAttempts':0x5,'baseDelay':0x3e8,'backoffFactor':0x2,'fuzzFactor':0.5},'dash':{'ignoreSuggestedPresentationDelay':!![],'clockSyncUri':''}},'abr':{'enabled':!![],'defaultBandwidthEstimate':0xf4240,'switchInterval':0x1}});player[b('0x0')]()[b('0x4')](function(_,request){request['allowCrossSiteCredentials']=![];delete request['headers']['Origin'];delete request['headers']['Referer'];});player[b('0x5')](b('0x9'),event=>{console['error']('Error\x20code',event['detail']['code'],'object',event['detail']);});await player[b('0xa')](manifestUri);ui['configure']({'addBigPlayButton':!![],'addSeekBar':!![],'controlPanelElements':['play_pause','time_and_duration','spacer','mute','volume','quality','fullscreen',],'overflowMenuButtons':['quality','captions','language','picture_in_picture']});console['log']('Player\x20initialized');}else{console['error']('Browser\x20not\x20supported');}}catch(error){console['error']('Error\x20initializing\x20player:',error);}}if(document['readyState']==='loading'){document['addEventListener']('DOMContentLoaded',initPlayer);}else{initPlayer();}})();
+    </script>
 
-            function _0x1e5c(d, e) {
-                var f = _0x2c7f[d - 0];
-                return f;
-            }
-
-            return async function initPlayer() {
-                try {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const path = urlParams.get('path');
-                    const response = await fetch('config.json');
-                    const config = await response.json();
-                    const manifestUri = config[path];
-
-                    shaka[_0x1e5c(13)][_0x1e5c(14)]();
-
-                    if (shaka[_0x1e5c(10)][_0x1e5c(15)]()) {
-                        const video = document[_0x1e5c(1)](_0x1e5c(0));
-                        const container = document[_0x1e5c(3)](_0x1e5c(2));
-
-                        const player = new shaka.Player(video);
-                        const ui = new shaka[_0x1e5c(12)][_0x1e5c(11)](player, container, video);
-
-                        // Configure player
-                        player[_0x1e5c(9)]({
-                            streaming: {
-                                bufferingGoal: 60,
-                                rebufferingGoal: 30,
-                                bufferBehind: 30,
-                                retryParameters: {
-                                    timeout: 0,
-                                    maxAttempts: 5,
-                                    baseDelay: 1000,
-                                    backoffFactor: 2,
-                                    fuzzFactor: 0.5
-                                }
-                            },
-                            manifest: {
-                                retryParameters: {
-                                    timeout: 0,
-                                    maxAttempts: 5,
-                                    baseDelay: 1000,
-                                    backoffFactor: 2,
-                                    fuzzFactor: 0.5
-                                },
-                                dash: {
-                                    ignoreSuggestedPresentationDelay: true,
-                                    clockSyncUri: ''
-                                }
-                            },
-                            abr: {
-                                enabled: true,
-                                defaultBandwidthEstimate: 1000000,
-                                switchInterval: 1
-                            }
-                        });
-
-                        // Add network filters
-                        player[_0x1e5c(4)]()[_0x1e5c(5)]((type, request) => {
-                            request.allowCrossSiteCredentials = false;
-                            request.headers = {
-                                'Origin': null,
-                                'Referer': '',
-                                'Access-Control-Allow-Origin': '*'
-                            };
-                        });
-
-                        // Error handling
-                        player[_0x1e5c(6)](_0x1e5c(7), (event) => {
-                            console.error('Error code', event.detail.code, 'object', event.detail);
-                        });
-
-                        // Load content
-                        await player[_0x1e5c(8)](manifestUri);
-                        
-                        // Configure UI
-                        const config = {
-                            addBigPlayButton: true,
-                            addSeekBar: true,
-                            controlPanelElements: [
-                                'play_pause',
-                                'time_and_duration',
-                                'spacer',
-                                'mute',
-                                'volume',
-                                'quality',
-                                'fullscreen',
-                            ],
-                            overflowMenuButtons: [
-                                'quality',
-                                'captions',
-                                'language',
-                                'picture_in_picture'
-                            ]
-                        };
-                        ui.configure(config);
-
-                        console.log('Player initialized');
+    <script>
+        // Additional CORS handling
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                if (url.includes('dai.google.com')) {
+                    options.mode = 'cors';
+                    options.credentials = 'omit';
+                    if (!options.headers) {
+                        options.headers = {};
                     }
-                } catch (error) {
-                    console.error('Error initializing player:', error);
+                    delete options.headers['Origin'];
+                    delete options.headers['Referer'];
+                    delete options.headers['Access-Control-Allow-Origin'];
                 }
+                return originalFetch(url, options);
             };
         })();
-
-        // Initialize when document is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
     </script>
 </body>
 </html>
