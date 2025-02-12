@@ -24,6 +24,7 @@
             justify-content: center;
             align-items: center;
             background-color: black;
+            position: relative;
         }
 
         .shaka-video-container {
@@ -40,7 +41,6 @@
             display: none; 
         }
 
-        /* Add error message styling */
         #error-message {
             position: absolute;
             top: 50%;
@@ -51,6 +51,38 @@
             padding: 20px;
             border-radius: 5px;
             display: none;
+            z-index: 1000;
+        }
+
+        #update-notification {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 150, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
     </style>
 </head>
@@ -60,14 +92,68 @@
             <video autoplay data-shaka-player id="video" poster="#"></video>
         </div>
         <div id="error-message"></div>
+        <div id="update-notification">Stream configuration updated</div>
+        <div class="loading-spinner" id="loading-spinner"></div>
     </div>
     <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
-
     <script>
-        (function() {
-            shaka.polyfill.installAll();
+        let currentConfig = null;
+        let player = null;
+        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-            async function init() {
+        class ConfigManager {
+            static async fetchLatest() {
+                try {
+                    const apiUrl = 'https://api.github.com/repos/Shahid429/streaming-app/contents/public/m3u8Links.json';
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            'Accept': 'application/vnd.github.v3.raw'
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to fetch config');
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching config:', error);
+                    throw error;
+                }
+            }
+
+            static async checkForUpdates() {
+                try {
+                    const newConfig = await this.fetchLatest();
+                    if (JSON.stringify(newConfig) !== JSON.stringify(currentConfig)) {
+                        console.log('Config updated, reloading player...');
+                        currentConfig = newConfig;
+                        this.showUpdateNotification();
+                        await PlayerManager.reinitialize();
+                    }
+                } catch (error) {
+                    console.error('Error checking for updates:', error);
+                }
+            }
+
+            static showUpdateNotification() {
+                const notification = document.getElementById('update-notification');
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        class PlayerManager {
+            static showLoading() {
+                document.getElementById('loading-spinner').style.display = 'block';
+            }
+
+            static hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            static async initialize() {
+                this.showLoading();
                 try {
                     const urlParams = new URLSearchParams(window.location.search);
                     const path = urlParams.get('path');
@@ -76,14 +162,11 @@
                         throw new Error('No channel path specified');
                     }
 
-                    // Fetch m3u8 links from the external JSON file
-                    const m3u8Response = await fetch('https://raw.githubusercontent.com/Shahid429/streaming-app/0634e7bb4faf14e9ece973e43a81a130a350256f/public/m3u8Links.json');
-                    if (!m3u8Response.ok) {
-                        throw new Error('Failed to fetch stream links');
+                    if (!currentConfig) {
+                        currentConfig = await ConfigManager.fetchLatest();
                     }
 
-                    const m3u8Links = await m3u8Response.json();
-                    const manifestUri = m3u8Links[path];
+                    const manifestUri = currentConfig[path];
 
                     if (!manifestUri) {
                         throw new Error(`Stream not found for path: ${path}`);
@@ -93,7 +176,7 @@
                         const video = document.getElementById('video');
                         const videoContainer = document.querySelector('[data-shaka-player-container]');
                         
-                        const player = new shaka.Player(video);
+                        player = new shaka.Player(video);
                         const ui = new shaka.ui.Overlay(player, videoContainer, video);
 
                         player.configure({
@@ -165,28 +248,41 @@
                         });
 
                         console.log('Player initialized successfully');
+                        this.hideLoading();
                     } else {
                         throw new Error('Browser not supported!');
                     }
                 } catch (error) {
+                    this.hideLoading();
                     console.error('Error initializing player:', error);
                     showError(error.message);
                 }
             }
 
-            function showError(message) {
-                const errorElement = document.getElementById('error-message');
-                errorElement.textContent = message;
-                errorElement.style.display = 'block';
+            static async reinitialize() {
+                if (player) {
+                    await player.unload();
+                }
+                await this.initialize();
             }
+        }
 
-            // Initialize when document is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-        })();
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            PlayerManager.hideLoading();
+        }
+
+        // Start periodic updates
+        setInterval(() => ConfigManager.checkForUpdates(), REFRESH_INTERVAL);
+
+        // Initial load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => PlayerManager.initialize());
+        } else {
+            PlayerManager.initialize();
+        }
 
         // Additional CORS handling
         (function() {
