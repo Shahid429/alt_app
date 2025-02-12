@@ -50,10 +50,110 @@
     <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
     <script>
-        (function(){var a=['getNetworkingEngine','configure','ui','Player','registerRequestFilter','addEventListener','installAll','getElementById','querySelector','error','load'];(function(b,e){var f=function(g){while(--g){b['push'](b['shift']());}};f(++e);}(a,0x15b));var b=function(c,d){c=c-0x0;var e=a[c];return e;};async function initPlayer(){try{const urlParams=new URLSearchParams(window['location']['search']);const path=urlParams['get']('path');const response=await fetch('config.json');const config=await response['json']();const manifestUri=config[path];shaka['polyfill'][b('0x6')]();if(shaka[b('0x3')]['isBrowserSupported']()){const video=document[b('0x7')]('video');const container=document[b('0x8')]('[data-shaka-player-container]');const player=new shaka['Player'](video);const ui=new shaka[b('0x2')]['Overlay'](player,container,video);player[b('0x1')]({'streaming':{'bufferingGoal':0x3c,'rebufferingGoal':0x1e,'bufferBehind':0x1e,'retryParameters':{'timeout':0x0,'maxAttempts':0x5,'baseDelay':0x3e8,'backoffFactor':0x2,'fuzzFactor':0.5}},'manifest':{'retryParameters':{'timeout':0x0,'maxAttempts':0x5,'baseDelay':0x3e8,'backoffFactor':0x2,'fuzzFactor':0.5},'dash':{'ignoreSuggestedPresentationDelay':!![],'clockSyncUri':''}},'abr':{'enabled':!![],'defaultBandwidthEstimate':0xf4240,'switchInterval':0x1}});player[b('0x0')]()[b('0x4')](function(_,request){request['allowCrossSiteCredentials']=![];delete request['headers']['Origin'];delete request['headers']['Referer'];});player[b('0x5')](b('0x9'),event=>{console['error']('Error\x20code',event['detail']['code'],'object',event['detail']);});await player[b('0xa')](manifestUri);ui['configure']({'addBigPlayButton':!![],'addSeekBar':!![],'controlPanelElements':['play_pause','time_and_duration','spacer','mute','volume','quality','fullscreen',],'overflowMenuButtons':['quality','captions','language','picture_in_picture']});console['log']('Player\x20initialized');}else{console['error']('Browser\x20not\x20supported');}}catch(error){console['error']('Error\x20initializing\x20player:',error);}}if(document['readyState']==='loading'){document['addEventListener']('DOMContentLoaded',initPlayer);}else{initPlayer();}})();
-    </script>
+        var manifestUri, initPlayer, onPlayerErrorEvent, onPlayerError, onUIErrorEvent, initFailed;
+        (function() {
+            shaka.polyfill.installAll();
 
-    <script>
+            async function init() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const path = urlParams.get('path');
+                    const response = await fetch('config.json');
+                    const config = await response.json();
+                    manifestUri = config[path];
+
+                    if (shaka.Player.isBrowserSupported()) {
+                        const video = document.getElementById('video');
+                        const videoContainer = document.querySelector('[data-shaka-player-container]');
+                        
+                        const player = new shaka.Player(video);
+                        const ui = new shaka.ui.Overlay(player, videoContainer, video);
+
+                        player.configure({
+                            streaming: {
+                                bufferingGoal: 60,
+                                rebufferingGoal: 30,
+                                bufferBehind: 30,
+                                retryParameters: {
+                                    timeout: 0,
+                                    maxAttempts: 5,
+                                    baseDelay: 1000,
+                                    backoffFactor: 2,
+                                    fuzzFactor: 0.5
+                                }
+                            },
+                            manifest: {
+                                retryParameters: {
+                                    timeout: 0,
+                                    maxAttempts: 5,
+                                    baseDelay: 1000,
+                                    backoffFactor: 2,
+                                    fuzzFactor: 0.5
+                                },
+                                dash: {
+                                    ignoreSuggestedPresentationDelay: true,
+                                    clockSyncUri: ''
+                                }
+                            },
+                            abr: {
+                                enabled: true,
+                                defaultBandwidthEstimate: 1000000,
+                                switchInterval: 1
+                            }
+                        });
+
+                        player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+                            request.allowCrossSiteCredentials = false;
+                            if (request.headers) {
+                                delete request.headers['Origin'];
+                                delete request.headers['Referer'];
+                            }
+                        });
+
+                        player.addEventListener('error', function(event) {
+                            console.error('Error code', event.detail.code, 'object', event.detail);
+                        });
+
+                        await player.load(manifestUri);
+
+                        ui.configure({
+                            addBigPlayButton: true,
+                            addSeekBar: true,
+                            controlPanelElements: [
+                                'play_pause',
+                                'time_and_duration',
+                                'spacer',
+                                'mute',
+                                'volume',
+                                'quality',
+                                'fullscreen',
+                            ],
+                            overflowMenuButtons: [
+                                'quality',
+                                'captions',
+                                'language',
+                                'picture_in_picture'
+                            ]
+                        });
+
+                        console.log('Player initialized successfully');
+                    } else {
+                        console.error('Browser not supported!');
+                    }
+                } catch (error) {
+                    console.error('Error initializing player:', error);
+                    throw error;
+                }
+            }
+
+            // Initialize when document is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+
         // Additional CORS handling
         (function() {
             const originalFetch = window.fetch;
@@ -66,7 +166,6 @@
                     }
                     delete options.headers['Origin'];
                     delete options.headers['Referer'];
-                    delete options.headers['Access-Control-Allow-Origin'];
                 }
                 return originalFetch(url, options);
             };
