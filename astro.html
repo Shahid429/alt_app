@@ -36,16 +36,6 @@
             width: 100%;
         }
 
-        .logo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            height: auto;
-            cursor: pointer;
-            z-index: 10;
-        }
-
         .shaka-spinner-container { 
             display: none; 
         }
@@ -60,66 +50,136 @@
     <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
     <script>
-        async function init() {
-            try {
-                const response = await fetch('config.json');
-                const config = await response.json();
-                const urlParams = new URLSearchParams(window.location.search);
-                const path = urlParams.get('path');
-                const manifestUri = config[path];
+        var initApp = (function() {
+            var _0x2c7f = [
+                'video',
+                'getElementById',
+                '[data-shaka-player-container]',
+                'querySelector',
+                'getNetworkingEngine',
+                'registerRequestFilter',
+                'addEventListener',
+                'error',
+                'load',
+                'configure',
+                'Player',
+                'Overlay',
+                'ui',
+                'polyfill',
+                'installAll',
+                'isBrowserSupported'
+            ];
 
-                shaka.polyfill.installAll();
-                
-                if (shaka.Player.isBrowserSupported()) {
-                    const video = document.getElementById('video');
-                    const player = new shaka.Player(video);
-                    
-                    // Configure player
-                    player.configure({
-                        streaming: {
-                            bufferingGoal: 60,
-                            rebufferingGoal: 30,
-                            bufferBehind: 30
-                        },
-                        manifest: {
-                            retryParameters: {
-                                timeout: 0,
-                                maxAttempts: 5,
-                                baseDelay: 1000,
-                                backoffFactor: 2,
-                                fuzzFactor: 0.5
-                            },
-                            dash: {
-                                ignoreSuggestedPresentationDelay: true
-                            }
-                        }
-                    });
-
-                    // Add network request filter
-                    player.getNetworkingEngine().registerRequestFilter((type, request) => {
-                        request.allowCrossSiteCredentials = false;
-                        request.headers = {
-                            'Origin': null,
-                            'Referer': ''
-                        };
-                    });
-
-                    // Error handling
-                    player.addEventListener('error', (error) => {
-                        console.error('Error code', error.code, 'object', error);
-                    });
-
-                    // Load content
-                    await player.load(manifestUri);
-                    console.log('The video has now been loaded!');
-                }
-            } catch (error) {
-                console.error('Error loading the video:', error);
+            function _0x1e5c(d, e) {
+                var f = _0x2c7f[d - 0];
+                return f;
             }
-        }
 
-        // Initialize on document load
-        document.addEventListener('DOMContentLoaded', init);
+            return async function initPlayer() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const path = urlParams.get('path');
+                    const response = await fetch('config.json');
+                    const config = await response.json();
+                    const manifestUri = config[path];
+
+                    shaka[_0x1e5c(13)][_0x1e5c(14)]();
+
+                    if (shaka[_0x1e5c(10)][_0x1e5c(15)]()) {
+                        const video = document[_0x1e5c(1)](_0x1e5c(0));
+                        const container = document[_0x1e5c(3)](_0x1e5c(2));
+
+                        const player = new shaka.Player(video);
+                        const ui = new shaka[_0x1e5c(12)][_0x1e5c(11)](player, container, video);
+
+                        // Configure player
+                        player[_0x1e5c(9)]({
+                            streaming: {
+                                bufferingGoal: 60,
+                                rebufferingGoal: 30,
+                                bufferBehind: 30,
+                                retryParameters: {
+                                    timeout: 0,
+                                    maxAttempts: 5,
+                                    baseDelay: 1000,
+                                    backoffFactor: 2,
+                                    fuzzFactor: 0.5
+                                }
+                            },
+                            manifest: {
+                                retryParameters: {
+                                    timeout: 0,
+                                    maxAttempts: 5,
+                                    baseDelay: 1000,
+                                    backoffFactor: 2,
+                                    fuzzFactor: 0.5
+                                },
+                                dash: {
+                                    ignoreSuggestedPresentationDelay: true,
+                                    clockSyncUri: ''
+                                }
+                            },
+                            abr: {
+                                enabled: true,
+                                defaultBandwidthEstimate: 1000000,
+                                switchInterval: 1
+                            }
+                        });
+
+                        // Add network filters
+                        player[_0x1e5c(4)]()[_0x1e5c(5)]((type, request) => {
+                            request.allowCrossSiteCredentials = false;
+                            request.headers = {
+                                'Origin': null,
+                                'Referer': '',
+                                'Access-Control-Allow-Origin': '*'
+                            };
+                        });
+
+                        // Error handling
+                        player[_0x1e5c(6)](_0x1e5c(7), (event) => {
+                            console.error('Error code', event.detail.code, 'object', event.detail);
+                        });
+
+                        // Load content
+                        await player[_0x1e5c(8)](manifestUri);
+                        
+                        // Configure UI
+                        const config = {
+                            addBigPlayButton: true,
+                            addSeekBar: true,
+                            controlPanelElements: [
+                                'play_pause',
+                                'time_and_duration',
+                                'spacer',
+                                'mute',
+                                'volume',
+                                'quality',
+                                'fullscreen',
+                            ],
+                            overflowMenuButtons: [
+                                'quality',
+                                'captions',
+                                'language',
+                                'picture_in_picture'
+                            ]
+                        };
+                        ui.configure(config);
+
+                        console.log('Player initialized');
+                    }
+                } catch (error) {
+                    console.error('Error initializing player:', error);
+                }
+            };
+        })();
+
+        // Initialize when document is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>
