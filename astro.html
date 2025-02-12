@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>Shaka Player Streaming</title>
-    
-    <!-- Shaka Player UI CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
+    <title>Stream Player</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css" crossorigin="anonymous">
     
     <style>
         html, body {
@@ -50,199 +49,77 @@
         .shaka-spinner-container { 
             display: none; 
         }
-
-        .loading-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            z-index: 20;
-        }
-
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        .error-message {
-            position: absolute;
-            text-align: center;
-            color: #ff4444;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 4px;
-            display: none;
-            z-index: 20;
-        }
     </style>
 </head>
 <body>
-    <img src="logs.png" alt="Logo" class="logo">
-    <div id="loading" class="loading-spinner"></div>
-    
     <div id="player-container">
         <div data-shaka-player-container class="shaka-video-container">
-            <video autoplay data-shaka-player id="video"></video>
+            <video autoplay data-shaka-player id="video" poster="#"></video>
         </div>
     </div>
-    <div id="error-display" class="error-message"></div>
+    <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 
-    <!-- Shaka Player -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
-    
     <script>
-        let player = null;
-        let ui = null;
-
-        async function loadVideo() {
+        async function init() {
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const path = urlParams.get("path");
-
-                if (!path) {
-                    showError("Invalid path parameter.");
-                    return;
-                }
-
-                // Configure fetch with no-cors mode
-                const response = await fetch("config.json", {
-                    mode: 'cors',
-                    credentials: 'same-origin'
-                });
+                const response = await fetch('config.json');
                 const config = await response.json();
+                const urlParams = new URLSearchParams(window.location.search);
+                const path = urlParams.get('path');
                 const manifestUri = config[path];
 
-                if (!manifestUri) {
-                    showError("Path not found in config.json.");
-                    return;
-                }
-
-                console.log("Video URL loaded:", manifestUri);
-                await initPlayer(manifestUri);
-
-            } catch (error) {
-                console.error("Error loading video:", error);
-                showError("Failed to load the video.");
-            }
-        }
-
-        async function initPlayer(manifestUri) {
-            shaka.polyfill.installAll();
-
-            if (shaka.Player.isBrowserSupported()) {
-                try {
+                shaka.polyfill.installAll();
+                
+                if (shaka.Player.isBrowserSupported()) {
                     const video = document.getElementById('video');
-                    const videoContainer = document.querySelector('[data-shaka-player-container]');
+                    const player = new shaka.Player(video);
                     
-                    player = new shaka.Player(video);
-                    ui = new shaka.ui.Overlay(player, videoContainer, video);
-
-                    // Configure player with CORS settings
+                    // Configure player
                     player.configure({
                         streaming: {
                             bufferingGoal: 60,
                             rebufferingGoal: 30,
-                            bufferBehind: 30,
-                            retryParameters: {
-                                timeout: 30000,
-                                maxAttempts: 5,
-                                baseDelay: 1000,
-                                backoffFactor: 2,
-                                fuzzFactor: 0.5
-                            }
-                        },
-                        abr: {
-                            enabled: true,
-                            defaultBandwidthEstimate: 1000000
+                            bufferBehind: 30
                         },
                         manifest: {
                             retryParameters: {
-                                timeout: 30000,
+                                timeout: 0,
                                 maxAttempts: 5,
                                 baseDelay: 1000,
                                 backoffFactor: 2,
                                 fuzzFactor: 0.5
+                            },
+                            dash: {
+                                ignoreSuggestedPresentationDelay: true
                             }
                         }
                     });
 
-                    // Add network filters
-                    player.getNetworkingEngine().registerRequestFilter(function(type, request) {
-                        // Set headers for all requests
-                        request.allowCrossSiteCredentials = true;
+                    // Add network request filter
+                    player.getNetworkingEngine().registerRequestFilter((type, request) => {
+                        request.allowCrossSiteCredentials = false;
                         request.headers = {
-                            'Origin': window.location.origin,
-                            'Referer': '',
-                            'Access-Control-Allow-Origin': '*'
+                            'Origin': null,
+                            'Referer': ''
                         };
                     });
 
-                    player.addEventListener('error', onPlayerError);
-                    player.addEventListener('loaded', onPlayerLoaded);
+                    // Error handling
+                    player.addEventListener('error', (error) => {
+                        console.error('Error code', error.code, 'object', error);
+                    });
 
+                    // Load content
                     await player.load(manifestUri);
-                    console.log('Video loaded successfully');
-                    hideError();
-                    document.getElementById("loading").style.display = "none";
-
-                } catch (error) {
-                    onPlayerError(error);
+                    console.log('The video has now been loaded!');
                 }
-            } else {
-                showError('Browser not supported!');
+            } catch (error) {
+                console.error('Error loading the video:', error);
             }
         }
 
-        function onPlayerError(error) {
-            console.error('Error code', error.code, 'object', error);
-            if (error.code === 1001 || error.code === 1002) {
-                showError('Network error: Please check your connection or try again later.');
-            } else if (error.code === 4035) {
-                showError('CORS error: Unable to access the video stream.');
-            } else {
-                showError('Error loading video: ' + error.message);
-            }
-            document.getElementById("loading").style.display = "none";
-        }
-
-        function onPlayerLoaded() {
-            console.log('Video loaded and ready to play');
-            hideError();
-            document.getElementById("loading").style.display = "none";
-        }
-
-        function showError(message) {
-            const errorDisplay = document.getElementById('error-display');
-            errorDisplay.textContent = message;
-            errorDisplay.style.display = 'block';
-        }
-
-        function hideError() {
-            const errorDisplay = document.getElementById('error-display');
-            errorDisplay.style.display = 'none';
-        }
-
-        // Handle page visibility changes
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                if (player && player.isPlaying()) {
-                    player.pause();
-                }
-            } else {
-                if (player && !player.isPlaying()) {
-                    player.play();
-                }
-            }
-        });
-
-        // Initialize when the document is ready
-        document.addEventListener('DOMContentLoaded', loadVideo);
+        // Initialize on document load
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
