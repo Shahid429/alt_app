@@ -1,161 +1,144 @@
 // Constants
-const playerURL = "https://shz.al/mHYz/Player.html?dtv=";
-const apiURL = "https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json";
-
-// Global variables
-let allMatches = [];
-let currentFilter = 'all';
+const PLAYER_URL = 'https://shz.al/Sffb/livecricplayer.html?dtv=';
+const API_URL = 'https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json';
 
 // DOM Elements
 const matchesContainer = document.getElementById('matches');
+const searchInput = document.getElementById('searchInput');
+const loader = document.getElementById('loader');
+const noMatches = document.getElementById('noMatches');
+const themeToggle = document.querySelector('.theme-toggle');
+const scrollToTop = document.querySelector('.scroll-to-top');
 const filterButtons = document.querySelectorAll('.filter-btn');
-const matchTemplate = document.getElementById('match-template');
 
-// Fetch and display matches
-async function fetchMatches() {
-    try {
-        const response = await fetch(apiURL);
-        const data = await response.json();
-        allMatches = data.matches;
-        displayMatches(allMatches);
-        initializeFilters();
-    } catch (error) {
-        console.error('Error fetching matches:', error);
-        matchesContainer.innerHTML = '<div class="error">Error loading matches. Please try again later.</div>';
-    }
+// State
+let matches = [];
+let currentFilter = 'all';
+
+// Theme Management
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
 }
 
-// Display matches
-function displayMatches(matches) {
+function updateThemeIcon(theme) {
+    const icon = themeToggle.querySelector('i');
+    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// Match Filtering and Display
+function filterMatches(matches, filter, searchTerm = '') {
+    return matches.filter(match => {
+        const matchesFilter = filter === 'all' || match.status.toLowerCase() === filter;
+        const matchesSearch = match.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            match.team_1.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            match.team_2.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
+}
+
+function createMatchCard(match) {
+    const statusClass = match.status.toLowerCase() === 'live' ? 'status-live' : 'status-upcoming';
+    const card = document.createElement('div');
+    card.className = 'match-item';
+    card.innerHTML = `
+        <div class="match-image">
+            <img src="${match.src}" alt="${match.title}" loading="lazy">
+            <span class="match-status ${statusClass}">${match.status}</span>
+        </div>
+        <div class="match-content">
+            <h3>${match.event_name}</h3>
+            <p class="teams">${match.team_1} vs ${match.team_2}</p>
+            <button class="stream-button" onclick="window.location.href='${PLAYER_URL}${match.adfree_url}'">
+                Watch Now
+                <i class="fas fa-play-circle"></i>
+            </button>
+        </div>
+    `;
+    return card;
+}
+
+function displayMatches(filteredMatches) {
     matchesContainer.innerHTML = '';
-    
-    if (matches.length === 0) {
-        matchesContainer.innerHTML = '<div class="no-matches">No matches found</div>';
+    if (filteredMatches.length === 0) {
+        noMatches.style.display = 'flex';
         return;
     }
-
-    // Sort matches (LIVE first, then upcoming)
-    matches.sort((a, b) => {
-        if (a.status.toLowerCase() === 'live' && b.status.toLowerCase() !== 'live') return -1;
-        if (a.status.toLowerCase() !== 'live' && b.status.toLowerCase() === 'live') return 1;
-        return new Date(a.startTime) - new Date(b.startTime);
-    });
-
-    matches.forEach(match => {
-        const matchCard = createMatchCard(match);
-        matchesContainer.appendChild(matchCard);
+    noMatches.style.display = 'none';
+    filteredMatches.forEach(match => {
+        matchesContainer.appendChild(createMatchCard(match));
     });
 }
 
-// Create match card
-function createMatchCard(match) {
-    const clone = matchTemplate.content.cloneNode(true);
-    
-    // Set match details
-    const matchItem = clone.querySelector('.match-item');
-    const image = clone.querySelector('.match-image');
-    const status = clone.querySelector('.status');
-    const title = clone.querySelector('.match-title');
-    const team1 = clone.querySelector('.team-1');
-    const team2 = clone.querySelector('.team-2');
-    const eventName = clone.querySelector('.event-name');
-    const watchBtn = clone.querySelector('.watch-btn');
+// Event Listeners
+searchInput.addEventListener('input', debounce(() => {
+    const filtered = filterMatches(matches, currentFilter, searchInput.value);
+    displayMatches(filtered);
+}, 300));
 
-    // Set data attributes
-    matchItem.dataset.category = match.event_category;
-    matchItem.dataset.status = match.status.toLowerCase();
+filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        currentFilter = button.dataset.filter;
+        const filtered = filterMatches(matches, currentFilter, searchInput.value);
+        displayMatches(filtered);
+    });
+});
 
-    // Set content
-    image.src = match.src;
-    image.alt = match.title;
-    status.textContent = match.status;
-    status.classList.add(match.status.toLowerCase() === 'live' ? 'status-live' : 'status-upcoming');
-    title.textContent = match.title;
-    team1.textContent = match.team_1;
-    team2.textContent = match.team_2;
-    eventName.textContent = match.event_name;
+themeToggle.addEventListener('click', toggleTheme);
 
-    // Handle watch button
-    if (match.status.toLowerCase() === 'live') {
-        watchBtn.addEventListener('click', () => {
-            window.location.href = playerURL + match.adfree_url;
+window.addEventListener('scroll', () => {
+    scrollToTop.style.display = window.scrollY > 500 ? 'block' : 'none';
+});
+
+scrollToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Utility Functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Initialize
+async function init() {
+    try {
+        // Set initial theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        // Fetch matches
+        loader.style.display = 'flex';
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        matches = data.matches.sort((a, b) => {
+            if (a.status.toLowerCase() === 'live') return -1;
+            if (b.status.toLowerCase() === 'live') return 1;
+            return 0;
         });
-    } else {
-        watchBtn.textContent = 'Coming Soon';
-        watchBtn.classList.add('disabled');
+        
+        displayMatches(matches);
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        matchesContainer.innerHTML = '<p class="error">Failed to load matches. Please try again later.</p>';
+    } finally {
+        loader.style.display = 'none';
     }
-
-    return clone;
 }
 
-// Initialize filter functionality
-function initializeFilters() {
-    filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Update active state
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            // Apply filter
-            currentFilter = button.dataset.filter;
-            filterMatches(currentFilter);
-        });
-    });
-}
-
-// Filter matches
-function filterMatches(filter) {
-    let filteredMatches = allMatches;
-
-    switch(filter) {
-        case 'live':
-            filteredMatches = allMatches.filter(match => 
-                match.status.toLowerCase() === 'live'
-            );
-            break;
-        case 'upcoming':
-            filteredMatches = allMatches.filter(match => 
-                match.status.toLowerCase() === 'upcoming'
-            );
-            break;
-        case 'Cricket':
-        case 'Football':
-            filteredMatches = allMatches.filter(match => 
-                match.event_category === filter
-            );
-            break;
-        // 'all' case will use all matches
-    }
-
-    displayMatches(filteredMatches);
-}
-
-// Auto-refresh live matches every 5 minutes
-function setupAutoRefresh() {
-    setInterval(fetchMatches, 300000); // 5 minutes
-}
-
-// Initialize application
-function init() {
-    fetchMatches();
-    setupAutoRefresh();
-}
-
-// Start the application
+// Start the app
 document.addEventListener('DOMContentLoaded', init);
-
-// Add some helper functions for time formatting if needed
-function formatDateTime(dateTimeStr) {
-    const date = new Date(dateTimeStr);
-    return date.toLocaleString('en-US', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-    });
-}
-
-// Error handling for images
-document.addEventListener('error', function(e) {
-    if (e.target.tagName.toLowerCase() === 'img') {
-        e.target.src = 'placeholder.png'; // Replace with your placeholder image
-    }
-}, true);
