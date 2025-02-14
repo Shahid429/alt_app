@@ -18,7 +18,7 @@ const matchList = document.getElementById("match-list");
 
 async function fetchLiveMatches() {
   try {
-    const response = await fetch("https://api.example.com/live-matches"); // Replace with your API endpoint
+    const response = await fetch("https://api.jsonbin.io/v3/qs/67aeee26acd3cb34a8e1b189"); // Replace with your API endpoint
     const data = await response.json();
     displayMatches(data);
   } catch (error) {
