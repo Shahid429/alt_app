@@ -1,5 +1,5 @@
 // Constants
-const playerURL = "https://shz.al/Sffb/livecricplayer.html?dtv=";
+const playerURL = "https://shz.al/mHYz/Player.html?dtv=";
 const apiURL = "https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json";
 
 // Global variables
