@@ -1,100 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Video Player</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link href="logo.css" rel="stylesheet">
-    <style>
-        /* Style to make the video responsive */
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-
-        /* Video container with responsive behavior */
-        .video-container {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        video {
-            width: 100%;
-            /* Ensures the video fills the container */
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="shortcut icon" href="https://drmlive.in/sports/fancode.png" />
+    <title>Live Sports Streaming</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-    <div class="video-container">
-        <video id="video" controls></video>
+    <div class="header">
+        <h1>Live Sports Streaming</h1>
     </div>
 
-    <script>
-        // Function to load video from config file dynamically
-        function loadVideo() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const path = urlParams.get("path"); // Get path parameter
+    <div class="filter-container">
+        <button class="filter-btn" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="live">Live</button>
+        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+        <button class="filter-btn" data-filter="Cricket">Cricket</button>
+        <button class="filter-btn" data-filter="Football">Football</button>
+    </div>
 
-            // Fetch the config.json file
-            fetch('config.json')
-                .then(response => response.json())
-                .then(config => {
-                    // Check if the path exists in config
-                    const m3u8Url = config[path];
-                    if (!m3u8Url) {
-                        alert('Path not found in config.');
-                        return;
-                    }
+    <div class="file-container" id="matches">
+        <div class="loading">Loading matches...</div>
+    </div>
 
-                    // Initialize the video player
-                    const video = document.getElementById('video');
-                    const hls = new Hls();
+    <template id="match-template">
+        <div class="match-item">
+            <img class="match-image" src="" alt="">
+            <div class="status"></div>
+            <div class="match-content">
+                <h3 class="match-title"></h3>
+                <div class="teams">
+                    <div class="team team-1"></div>
+                    <div class="vs">VS</div>
+                    <div class="team team-2"></div>
+                </div>
+                <p class="event-name"></p>
+                <button class="watch-btn">Watch Now</button>
+            </div>
+        </div>
+    </template>
 
-                    // Load the source dynamically
-                    hls.loadSource(m3u8Url);
-                    hls.attachMedia(video);
-
-                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                        console.log('Manifest parsed, the video can now be played!');
-                    });
-
-                    hls.on(Hls.Events.ERROR, function (event, data) {
-                        if (data.fatal) {
-                            console.error('HLS.js error:', data);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading config:', error);
-                    alert('Failed to load video configuration.');
-                });
-        }
-
-        // Run the loadVideo function on page load
-        window.onload = loadVideo;
-    </script>
+    <script src="script.js"></script>
 </body>
-
 </html>
