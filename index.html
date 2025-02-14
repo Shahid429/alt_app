@@ -4,90 +4,225 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <meta name="description" content="Live Cricket Matches - Watch cricket matches live on Fancode">
-    <meta name="theme-color" content="#ff3700">
     <link rel="shortcut icon" href="https://drmlive.in/sports/fancode.png" />
-    <title>Live Cricket Hub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@400;600;700&display=swap">
-    <link rel="stylesheet" href="styles.css">
+    <title>Live Cricket Matches</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap">
+    <style>
+        :root {
+            --primary-color: #ff3700;
+            --text-color: #ffffff;
+            --bg-color: #000000;
+            --card-bg: #1a1a1a;
+            --hover-color: #2a2a2a;
+        }
+
+        [data-theme="light"] {
+            --text-color: #000000;
+            --bg-color: #ffffff;
+            --card-bg: #f5f5f5;
+            --hover-color: #e5e5e5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--primary-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .file-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .match-item {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .match-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .match-item img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .match-info {
+            margin: 15px 0;
+        }
+
+        .match-title {
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .status-live {
+            color: #00ff00;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-upcoming {
+            color: #888;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .stream-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .stream-button:hover {
+            opacity: 0.9;
+        }
+
+        .telegram-button {
+            display: inline-block;
+            background-color: #0088cc;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 20px auto;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .file-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-brand">
-            <i class="fas fa-cricket fa-lg"></i>
-            <h1>Live Cricket Hub</h1>
-        </div>
-        <div class="nav-controls">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search matches...">
-                <i class="fas fa-search"></i>
-            </div>
-            <button class="theme-toggle" aria-label="Toggle theme">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </nav>
-
-    <div class="filters">
-        <button class="filter-btn active" data-filter="all">All Matches</button>
-        <button class="filter-btn" data-filter="live">Live</button>
-        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
-        <button class="filter-btn" data-filter="completed">Completed</button>
+    <div class="header">
+        <h1>Live Cricket Matches</h1>
+        <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
     </div>
+    
+    <a href="https://telegram.me/livecrichdofficial" class="telegram-button">Join Our Telegram Channel</a>
+    
+    <div class="file-container" id="matches"></div>
 
-    <main>
-        <div class="telegram-banner">
-            <i class="fab fa-telegram"></i>
-            <div class="banner-content">
-                <h3>Join Our Telegram Channel</h3>
-                <p>Get instant updates and match notifications</p>
-            </div>
-            <a href="https://telegram.me/livecrichdofficial" class="telegram-button">
-                Join Now
-                <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
+    <script>
+        // Theme Toggle Function
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
 
-        <div class="loading-spinner" id="loader">
-            <div class="spinner"></div>
-        </div>
+        // Set Initial Theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
 
-        <div class="file-container" id="matches"></div>
+        // Fetch and Display Matches
+        const playerURL = 'https://shz.al/Sffb/livecricplayer.html?dtv=';
+        const apiURL = 'https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json';
 
-        <div class="no-matches" id="noMatches" style="display: none;">
-            <i class="fas fa-search"></i>
-            <p>No matches found</p>
-        </div>
-    </main>
+        async function fetchMatches() {
+            try {
+                const response = await fetch(apiURL);
+                const data = await response.json();
+                const matchesContainer = document.getElementById('matches');
+                const processedMatches = new Set();
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <a href="#">Home</a>
-                <a href="#">Schedule</a>
-                <a href="#">Live Matches</a>
-                <a href="#">Contact</a>
-            </div>
-            <div class="footer-section">
-                <h4>Follow Us</h4>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-telegram"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Live Cricket Hub. All rights reserved.</p>
-        </div>
-    </footer>
+                data.matches
+                    .sort((a, b) => {
+                        if (a.status.toLowerCase() === 'live' && b.status.toLowerCase() !== 'live') return -1;
+                        if (a.status.toLowerCase() !== 'live' && b.status.toLowerCase() === 'live') return 1;
+                        return 0;
+                    })
+                    .forEach(match => {
+                        if (!processedMatches.has(match.match_id)) {
+                            const statusClass = match.status.toLowerCase() === 'live' ? 'status-live' : 'status-upcoming';
+                            
+                            const matchElement = document.createElement('div');
+                            matchElement.className = 'match-item';
+                            matchElement.innerHTML = `
+                                <img src="${match.src}" alt="${match.title}">
+                                <div class="match-info">
+                                    <div class="match-title">${match.event_name}</div>
+                                    <p>${match.team_1} vs ${match.team_2}</p>
+                                    <p class="${statusClass}">${match.status}</p>
+                                </div>
+                                <button class="stream-button" onclick="window.location.href='${playerURL}${match.adfree_url}'">
+                                    Watch Now
+                                </button>
+                            `;
+                            
+                            matchesContainer.appendChild(matchElement);
+                            processedMatches.add(match.match_id);
+                        }
+                    });
+            } catch (error) {
+                console.error('Error fetching matches:', error);
+            }
+        }
 
-    <button class="scroll-to-top" aria-label="Scroll to top">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-
-    <script src="script.js"></script>
+        fetchMatches();
+    </script>
 </body>
 </html>
