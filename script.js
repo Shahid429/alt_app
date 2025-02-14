@@ -10,7 +10,9 @@ const body = document.body;
 
 themeToggle.addEventListener("click", () => {
   body.classList.toggle("dark");
-  themeToggle.innerHTML = body.classList.contains("dark") ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  themeToggle.innerHTML = body.classList.contains("dark")
+    ? '<i class="fas fa-sun"></i>'
+    : '<i class="fas fa-moon"></i>';
 });
 
 // Fetch Live Matches from API
@@ -20,7 +22,8 @@ async function fetchLiveMatches() {
   try {
     const response = await fetch("https://api.jsonbin.io/v3/qs/67aeee26acd3cb34a8e1b189"); // Replace with your API endpoint
     const data = await response.json();
-    displayMatches(data);
+    // Assuming your array is in data.record, adjust if necessary
+    displayMatches(data.record);
   } catch (error) {
     console.error("Error fetching live matches:", error);
   }
@@ -52,7 +55,7 @@ function displayMatches(matches) {
   });
 }
 
-// Refresh Match List Every 5 Minutes
+// Refresh Match List Every 5 Minutes (300000ms)
 setInterval(fetchLiveMatches, 300000);
 
 // Initial Fetch
