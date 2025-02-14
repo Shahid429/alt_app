@@ -1,56 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Streams</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Open+Sans:wght@300&display=swap"
-        rel="stylesheet">
-    <!-- AOS Library CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-    <!-- FontAwesome CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="styles.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Cricket Matches</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 </head>
-
 <body>
-    <div class="content" data-aos="fade-up">
-        <img src="logs.png" alt="Logo" class="logo" data-aos="zoom-in">
-        <h1 data-aos="fade-right"><i class="fas fa-cricket"></i> Welcome to the Live Streams</h1>
-        <p data-aos="fade-left">Click the buttons below to access the live streams:</p>
-
-        <!-- Updated buttons to pass 'path' parameter dynamically -->
-        <button class="btn btn-custom" onclick="window.location.href='fancode.html?path=fancode'"
-            data-aos="flip-left"><i class="fas fa-fan"></i> Fancode Stream</button>
-        <button class="btn btn-custom" onclick="window.location.href='jio.html?path=jio'" data-aos="flip-right"><i
-                class="fas fa-play-circle"></i> Jio Stream</button>
-        <button class="btn btn-custom" onclick="window.location.href='astro.html?path=astro'" data-aos="flip-right"><i
-                class="fas fa-play-circle"></i> Astro 60Fps</button>
-        <button class="btn btn-custom" onclick="window.location.href='willow.html?path=willow'" data-aos="flip-right"><i
-                class="fas fa-play-circle"></i> Willow 4k</button>
+  <!-- Navbar -->
+  <nav>
+    <div class="navbar">
+      <h1>Live Cricket</h1>
+      <button id="theme-toggle"><i class="fas fa-moon"></i></button>
     </div>
+  </nav>
 
-    <footer data-aos="fade-up">
-        &copy; 2024 RakhFC. All rights reserved. This is a demo website for live streaming.
-    </footer>
+  <!-- Main Section -->
+  <main>
+    <h2 data-aos="fade-down">Ongoing Matches</h2>
+    <div id="match-list" data-aos="fade-up"></div>
+  </main>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.6/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- AOS Library JS -->
-    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-    <!-- FontAwesome JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
-    <!-- Socket.io JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
-    <!-- Custom JS -->
-    <script src="script.js"></script>
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Live Cricket. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script src="script.js"></script>
 </body>
-
 </html>
