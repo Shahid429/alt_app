@@ -30,11 +30,26 @@
         .shaka-video-container {
             height: 100%;
             width: 100%;
+            position: relative;
+        }
+
+        .shaka-controls-container {
+            position: absolute !important;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .shaka-controls-container:not(:first-child) {
+            display: none !important;
         }
 
         video {
             height: 100%;
             width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         .shaka-spinner-container { 
@@ -178,6 +193,7 @@
                         
                         player = new shaka.Player(video);
                         const ui = new shaka.ui.Overlay(player, videoContainer, video);
+                        const controls = ui.getControls();
 
                         player.configure({
                             streaming: {
@@ -247,6 +263,14 @@
                             ]
                         });
 
+                        // Ensure single UI instance
+                        if (videoContainer.getElementsByClassName('shaka-controls-container').length > 1) {
+                            const controls = videoContainer.getElementsByClassName('shaka-controls-container');
+                            for (let i = 1; i < controls.length; i++) {
+                                controls[i].remove();
+                            }
+                        }
+
                         console.log('Player initialized successfully');
                         this.hideLoading();
                     } else {
@@ -261,6 +285,10 @@
 
             static async reinitialize() {
                 if (player) {
+                    const videoContainer = document.querySelector('[data-shaka-player-container]');
+                    const controls = videoContainer.getElementsByClassName('shaka-controls-container');
+                    // Remove all existing control elements
+                    Array.from(controls).forEach(control => control.remove());
                     await player.unload();
                 }
                 await this.initialize();
