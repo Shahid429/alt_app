@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Stream Player</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.1.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.1.1/controls.min.css" crossorigin="anonymous">
+    
+    <style>
+        /* Your existing styles remain the same, just add these new rules */
+        
+        /* Fix for duplicate controls */
+        .shaka-controls-container + .shaka-controls-container,
+        .shaka-controls-container:not(:first-child) {
+            display: none !important;
+        }
+
+        /* Ensure single control bar */
+        .shaka-controls-container {
+            z-index: 1;
+        }
+
+        /* Hide default HTML5 controls */
+        video::-webkit-media-controls {
+            display: none !important;
+        }
+
+        /* Ensure controls are visible */
+        .shaka-controls-container {
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Rest of your existing styles remain the same */
+    </style>
+</head>
+<body>
+    <div id="player-container">
+        <!-- Modified container structure -->
+        <div data-shaka-player-container style="width:100%;height:100%">
+            <video data-shaka-player autoplay id="video" style="width:100%;height:100%"></video>
+        </div>
+        <div id="error-message"></div>
+        <div id="update-notification">Stream configuration updated</div>
+        <div class="loading-spinner" id="loading-spinner"></div>
+    </div>
+
+    <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+    <script>
+        // Your existing script remains the same, but modify the PlayerManager.initialize() method:
+
+        class PlayerManager {
+            static async initialize() {
+                this.showLoading();
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const path = urlParams.get('path');
+
+                    if (!path) {
+                        throw new Error('No channel path specified');
+                    }
+
+                    if (!currentConfig) {
+                        currentConfig = await ConfigManager.fetchLatest();
+                    }
+
+                    const manifestUri = currentConfig[path];
+
+                    if (!manifestUri) {
+                        throw new Error(`Stream not found for path: ${path}`);
+                    }
+
+                    if (shaka.Player.isBrowserSupported()) {
+                        shaka.polyfill.installAll();
+                        
+                        const video = document.getElementById('video');
+                        const container = document.querySelector('[data-shaka-player-container]');
+
+                        // Ensure clean initialization
+                        if (player) {
+                            await player.destroy();
+                        }
+
+                        // Create new player instance
+                        player = new shaka.Player(video);
+
+                        // Create UI only if it doesn't exist
+                        if (!ui) {
+                            ui = new shaka.ui.Overlay(player, container, video);
+                            
+                            // Configure UI only once
+                            ui.configure({
+                                addBigPlayButton: true,
+                                controlPanelElements: [
+                                    'play_pause',
+                                    'mute',
+                                    'volume',
+                                    'time_and_duration',
+                                    'quality',
+                                    'fullscreen',
+                                    'overflow_menu'
+                                ],
+                                volumeBarColors: {
+                                    base: 'rgba(63, 187, 1, 1)',
+                                    level: 'rgb(255, 69, 0)'
+                                },
+                                seekBarColors: {
+                                    base: 'rgb(41, 41, 163)',
+                                    buffered: 'rgb(35, 99, 3)',
+                                    played: 'rgba(63, 187, 1, 1)'
+                                }
+                            });
+                        }
+
+                        player.configure({
+                            streaming: {
+                                bufferingGoal: 60,
+                                rebufferingGoal: 30,
+                                bufferBehind: 30
+                            }
+                        });
+
+                        player.addEventListener('error', function(event) {
+                            console.error('Error code', event.detail.code, 'object', event.detail);
+                            showError(`Player error: ${event.detail.message}`);
+                        });
+
+                        await player.load(manifestUri);
+                        video.play();
+
+                        console.log('Player initialized successfully');
+                        this.hideLoading();
+                    } else {
+                        throw new Error('Browser not supported!');
+                    }
+                } catch (error) {
+                    this.hideLoading();
+                    console.error('Error initializing player:', error);
+                    showError(error.message);
+                }
+            }
+
+            // Rest of your code remains the same
+        }
+
+        // Rest of your code remains the same
+    </script>
+</body>
+</html>
