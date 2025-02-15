@@ -9,36 +9,134 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.1.1/controls.min.css" crossorigin="anonymous">
     
     <style>
-        /* Your existing styles remain the same, just add these new rules */
-        
-        /* Fix for duplicate controls */
-        .shaka-controls-container + .shaka-controls-container,
-        .shaka-controls-container:not(:first-child) {
-            display: none !important;
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: black;
         }
 
-        /* Ensure single control bar */
-        .shaka-controls-container {
-            z-index: 1;
+        #player-container {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: black;
         }
 
-        /* Hide default HTML5 controls */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         video::-webkit-media-controls {
             display: none !important;
         }
 
-        /* Ensure controls are visible */
+        .shaka-video-container {
+            width: 100%;
+            height: 100%;
+        }
+
         .shaka-controls-container {
             visibility: visible !important;
             opacity: 1 !important;
         }
 
-        /* Rest of your existing styles remain the same */
+        .shaka-controls-container + .shaka-controls-container,
+        .shaka-controls-container:not(:first-child) {
+            display: none !important;
+        }
+
+        .shaka-spinner-container { 
+            display: none; 
+        }
+
+        .shaka-overflow-menu {
+            background-color: rgb(41, 41, 163);
+            color: rgb(153, 153, 153);
+        }
+        
+        .shaka-overflow-menu button:hover {
+            background-color: rgb(45, 45, 45);
+        }
+        
+        .shaka-overflow-button-label {
+            color: rgb(245, 245, 245);
+        }
+        
+        .shaka-current-selection-span {
+            color: rgb(202, 202, 202);
+        }
+        
+        .material-icons-round {
+            color: rgb(230, 230, 230);
+        }
+        
+        .shaka-settings-menu {
+            background-color: rgb(35, 35, 35);
+            color: rgb(255, 255, 255);
+        }
+        
+        .shaka-settings-menu button {
+            color: rgb(255, 255, 255);
+        }
+        
+        .shaka-settings-menu button:hover {
+            background-color: rgb(45, 45, 45);
+        }
+
+        #error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        #update-notification {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 150, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div id="player-container">
-        <!-- Modified container structure -->
         <div data-shaka-player-container style="width:100%;height:100%">
             <video data-shaka-player autoplay id="video" style="width:100%;height:100%"></video>
         </div>
@@ -47,11 +145,63 @@
         <div class="loading-spinner" id="loading-spinner"></div>
     </div>
 
-    <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
     <script>
-        // Your existing script remains the same, but modify the PlayerManager.initialize() method:
+        let currentConfig = null;
+        let player = null;
+        let ui = null;
+        const REFRESH_INTERVAL = 5 * 60 * 1000;
+
+        class ConfigManager {
+            static async fetchLatest() {
+                try {
+                    const apiUrl = 'https://raw.githubusercontent.com/Shahid429/Link/refs/heads/main/links.json';
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            'Accept': 'application/vnd.github.v3.raw'
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to fetch config');
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching config:', error);
+                    throw error;
+                }
+            }
+
+            static async checkForUpdates() {
+                try {
+                    const newConfig = await this.fetchLatest();
+                    if (JSON.stringify(newConfig) !== JSON.stringify(currentConfig)) {
+                        console.log('Config updated, reloading player...');
+                        currentConfig = newConfig;
+                        this.showUpdateNotification();
+                        await PlayerManager.reinitialize();
+                    }
+                } catch (error) {
+                    console.error('Error checking for updates:', error);
+                }
+            }
+
+            static showUpdateNotification() {
+                const notification = document.getElementById('update-notification');
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
 
         class PlayerManager {
+            static showLoading() {
+                document.getElementById('loading-spinner').style.display = 'block';
+            }
+
+            static hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
             static async initialize() {
                 this.showLoading();
                 try {
@@ -73,24 +223,20 @@
                     }
 
                     if (shaka.Player.isBrowserSupported()) {
-                        shaka.polyfill.installAll();
+                        await shaka.polyfill.installAll();
                         
                         const video = document.getElementById('video');
                         const container = document.querySelector('[data-shaka-player-container]');
 
-                        // Ensure clean initialization
                         if (player) {
                             await player.destroy();
                         }
 
-                        // Create new player instance
                         player = new shaka.Player(video);
 
-                        // Create UI only if it doesn't exist
                         if (!ui) {
                             ui = new shaka.ui.Overlay(player, container, video);
                             
-                            // Configure UI only once
                             ui.configure({
                                 addBigPlayButton: true,
                                 controlPanelElements: [
@@ -142,10 +288,45 @@
                 }
             }
 
-            // Rest of your code remains the same
+            static async reinitialize() {
+                if (player) {
+                    await player.unload();
+                    await player.destroy();
+                }
+                await this.initialize();
+            }
         }
 
-        // Rest of your code remains the same
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            PlayerManager.hideLoading();
+        }
+
+        setInterval(() => ConfigManager.checkForUpdates(), REFRESH_INTERVAL);
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => PlayerManager.initialize());
+        } else {
+            PlayerManager.initialize();
+        }
+
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                if (url.includes('dai.google.com')) {
+                    options.mode = 'cors';
+                    options.credentials = 'omit';
+                    if (!options.headers) {
+                        options.headers = {};
+                    }
+                    delete options.headers['Origin'];
+                    delete options.headers['Referer'];
+                }
+                return originalFetch(url, options);
+            };
+        })();
     </script>
 </body>
 </html>
