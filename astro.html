@@ -104,7 +104,7 @@
         class ConfigManager {
             static async fetchLatest() {
                 try {
-                    const apiUrl = 'https://api.github.com/repos/Shahid429/Link/contents/m3u8Links.json';
+                    const apiUrl = 'https://raw.githubusercontent.com/Shahid429/Link/refs/heads/main/links.json';
                     const response = await fetch(apiUrl, {
                         headers: {
                             'Accept': 'application/vnd.github.v3.raw'
