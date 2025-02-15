@@ -28,28 +28,13 @@
         }
 
         .shaka-video-container {
-            height: 100%;
             width: 100%;
-            position: relative;
-        }
-
-        .shaka-controls-container {
-            position: absolute !important;
-            bottom: 0;
-            left: 0;
-            right: 0;
-        }
-
-        .shaka-controls-container:not(:first-child) {
-            display: none !important;
+            height: 100%;
         }
 
         video {
-            height: 100%;
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+            height: 100%;
         }
 
         .shaka-spinner-container { 
@@ -103,8 +88,8 @@
 </head>
 <body>
     <div id="player-container">
-        <div data-shaka-player-container class="shaka-video-container">
-            <video autoplay data-shaka-player id="video" poster="#"></video>
+        <div data-shaka-player-container>
+            <video data-shaka-player autoplay id="video"></video>
         </div>
         <div id="error-message"></div>
         <div id="update-notification">Stream configuration updated</div>
@@ -114,7 +99,8 @@
     <script>
         let currentConfig = null;
         let player = null;
-        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+        let ui = null;
+        const REFRESH_INTERVAL = 5 * 60 * 1000;
 
         class ConfigManager {
             static async fetchLatest() {
@@ -188,51 +174,26 @@
                     }
 
                     if (shaka.Player.isBrowserSupported()) {
-                        const video = document.getElementById('video');
-                        const videoContainer = document.querySelector('[data-shaka-player-container]');
+                        shaka.polyfill.installAll();
                         
+                        const video = document.getElementById('video');
+                        const container = document.querySelector('[data-shaka-player-container]');
+
                         player = new shaka.Player(video);
-                        const ui = new shaka.ui.Overlay(player, videoContainer, video);
-                        const controls = ui.getControls();
+                        ui = new shaka.ui.Overlay(player, container, video);
+
+                        const uiConfig = {
+                            'controlPanelElements': ['play_pause', 'time_and_duration', 'spacer', 'mute', 'volume', 'fullscreen'],
+                            'overflowMenuButtons': ['quality', 'captions', 'language', 'picture_in_picture'],
+                            'addSeekBar': true
+                        };
+                        ui.configure(uiConfig);
 
                         player.configure({
                             streaming: {
                                 bufferingGoal: 60,
                                 rebufferingGoal: 30,
-                                bufferBehind: 30,
-                                retryParameters: {
-                                    timeout: 0,
-                                    maxAttempts: 5,
-                                    baseDelay: 1000,
-                                    backoffFactor: 2,
-                                    fuzzFactor: 0.5
-                                }
-                            },
-                            manifest: {
-                                retryParameters: {
-                                    timeout: 0,
-                                    maxAttempts: 5,
-                                    baseDelay: 1000,
-                                    backoffFactor: 2,
-                                    fuzzFactor: 0.5
-                                },
-                                dash: {
-                                    ignoreSuggestedPresentationDelay: true,
-                                    clockSyncUri: ''
-                                }
-                            },
-                            abr: {
-                                enabled: true,
-                                defaultBandwidthEstimate: 1000000,
-                                switchInterval: 1
-                            }
-                        });
-
-                        player.getNetworkingEngine().registerRequestFilter(function(type, request) {
-                            request.allowCrossSiteCredentials = false;
-                            if (request.headers) {
-                                delete request.headers['Origin'];
-                                delete request.headers['Referer'];
+                                bufferBehind: 30
                             }
                         });
 
@@ -242,34 +203,7 @@
                         });
 
                         await player.load(manifestUri);
-
-                        ui.configure({
-                            addBigPlayButton: true,
-                            addSeekBar: true,
-                            controlPanelElements: [
-                                'play_pause',
-                                'time_and_duration',
-                                'spacer',
-                                'mute',
-                                'volume',
-                                'quality',
-                                'fullscreen',
-                            ],
-                            overflowMenuButtons: [
-                                'quality',
-                                'captions',
-                                'language',
-                                'picture_in_picture'
-                            ]
-                        });
-
-                        // Ensure single UI instance
-                        if (videoContainer.getElementsByClassName('shaka-controls-container').length > 1) {
-                            const controls = videoContainer.getElementsByClassName('shaka-controls-container');
-                            for (let i = 1; i < controls.length; i++) {
-                                controls[i].remove();
-                            }
-                        }
+                        video.play();
 
                         console.log('Player initialized successfully');
                         this.hideLoading();
@@ -285,11 +219,8 @@
 
             static async reinitialize() {
                 if (player) {
-                    const videoContainer = document.querySelector('[data-shaka-player-container]');
-                    const controls = videoContainer.getElementsByClassName('shaka-controls-container');
-                    // Remove all existing control elements
-                    Array.from(controls).forEach(control => control.remove());
                     await player.unload();
+                    player.destroy();
                 }
                 await this.initialize();
             }
@@ -302,17 +233,14 @@
             PlayerManager.hideLoading();
         }
 
-        // Start periodic updates
         setInterval(() => ConfigManager.checkForUpdates(), REFRESH_INTERVAL);
 
-        // Initial load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => PlayerManager.initialize());
         } else {
             PlayerManager.initialize();
         }
 
-        // Additional CORS handling
         (function() {
             const originalFetch = window.fetch;
             window.fetch = function(url, options = {}) {
