@@ -4,7 +4,6 @@ class MatchesApp {
         this.loadingIndicator = document.getElementById('loadingIndicator');
         this.updateTimeElement = document.getElementById('updateTime');
         this.apiUrl = 'https://raw.githubusercontent.com/drmlive/sliv-live-events/main/sonyliv.json';
-        this.playerURL = 'https://shz.al/mHYz/Player.html?dtv=';
         this.retryAttempts = 3;
         this.retryDelay = 5000;
         this.matches = [];
@@ -41,14 +40,9 @@ class MatchesApp {
                 const response = await fetch(this.apiUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
-                this.matches = data.matches.map(match => ({
-                    ...match,
-                    contentId: match.match_id,
-                    isLive: match.status.toLowerCase() === 'live',
-                    event_name: `${match.team_1} vs ${match.team_2}`,
-                    event_category: match.event_name,
-                    src: match.src || 'default-image-url.jpg'
-                }));
+                this.matches = data.matches;
+                this.lastUpdateTime = data["last update time"];
+                this.telegramLink = data.telegram;
                 return;
             } catch (error) {
                 if (attempt === this.retryAttempts) throw error;
@@ -58,17 +52,21 @@ class MatchesApp {
     }
 
     updateLastUpdateTime() {
-        const now = new Date();
-        const options = {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour12: true
-        };
-        this.updateTimeElement.textContent = `Last updated: ${now.toLocaleString('en-US', options)}`;
+        if (this.lastUpdateTime) {
+            this.updateTimeElement.textContent = `Last updated: ${this.lastUpdateTime}`;
+        } else {
+            const now = new Date();
+            const options = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour12: true
+            };
+            this.updateTimeElement.textContent = `Last updated: ${now.toLocaleString('en-US', options)}`;
+        }
     }
 
     createMatchCard(match) {
@@ -94,19 +92,28 @@ class MatchesApp {
                     <span class="status-badge ${statusClass}">${statusText}</span>
                 </div>
                 <div class="match-content">
-                    <h2 class="match-title">${match.event_name}</h2>
+                    <h2 class="match-title">${match.match_name || match.event_name}</h2>
                     <div class="match-details">
                         <div class="match-info">
-                            <span class="channel">${match.broadcast_channel || ''}</span>
-                            <span class="language">${match.audioLanguageName || ''}</span>
+                            <span class="channel">${match.broadcast_channel}</span>
+                            <span class="language">${match.audioLanguageName}</span>
                         </div>
                     </div>
-                    <button class="stream-button" onclick="app.playMatch('${match.contentId}')">
-                        <svg class="play-icon" fill="currentColor" height="20" width="20" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                        Watch Now
-                    </button>
+                    ${match.isLive ? `
+                        <button class="stream-button" onclick="app.playMatch('${match.contentId}')">
+                            <svg class="play-icon" fill="currentColor" height="20" width="20" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            Watch Now
+                        </button>
+                    ` : `
+                        <button class="stream-button" disabled style="opacity: 0.6;">
+                            <svg class="play-icon" fill="currentColor" height="20" width="20" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            Coming Soon
+                        </button>
+                    `}
                 </div>
             </article>
         `;
@@ -132,7 +139,10 @@ class MatchesApp {
     }
 
     playMatch(matchId) {
-        window.location.href = `${this.playerURL}${matchId}`;
+        const match = this.matches.find(m => m.contentId === parseInt(matchId));
+        if (match && match.video_url) {
+            window.location.href = match.video_url;
+        }
     }
 
     addMatchCardListeners() {
@@ -142,7 +152,10 @@ class MatchesApp {
             
             card.addEventListener('click', (e) => {
                 if (!e.target.closest('.stream-button')) {
-                    this.playMatch(matchId);
+                    const match = this.matches.find(m => m.contentId === parseInt(matchId));
+                    if (match && match.isLive) {
+                        this.playMatch(matchId);
+                    }
                 }
             });
         });
