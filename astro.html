@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ... (keep the existing head content) ... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Stream Player</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css" crossorigin="anonymous">
+    
     <style>
         html, body {
             margin: 0;
@@ -9,23 +15,52 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
 
         #player-container {
-            height: 100vh;
+            height: 100%;
             width: 100%;
-            position: relative;
+            display: grid;
+            grid-template-rows: auto 1fr;
             background-color: black;
         }
 
+        .stream-selector {
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            border-bottom: 1px solid #555;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .stream-button {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #444;
+            color: white;
+            border: 1px solid #666;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .stream-button:hover {
+            background-color: #555;
+            transform: scale(1.05);
+        }
+
         .shaka-video-container {
-            height: 100%;
+            height: calc(100vh - 80px);
             width: 100%;
         }
 
         video {
             height: 100%;
             width: 100%;
+            background-color: black;
         }
 
         .shaka-spinner-container { 
@@ -43,6 +78,7 @@
             border-radius: 5px;
             display: none;
             z-index: 1000;
+            text-align: center;
         }
 
         #update-notification {
@@ -75,46 +111,16 @@
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
-
-        #stream-selection {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-            z-index: 10000;
-        }
-
-        #stream-selection button {
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        #stream-selection button:hover {
-            background-color: #45a049;
-        }
     </style>
 </head>
 <body>
-    <div id="stream-selection">
-        <h2>Select Stream</h2>
-        <button onclick="selectStream('fancode')">Fancode</button>
-        <button onclick="selectStream('astro')">Astro</button>
-        <button onclick="selectStream('jio')">Jio</button>
-        <button onclick="selectStream('willow')">Willow</button>
-    </div>
-
     <div id="player-container">
+        <div class="stream-selector">
+            <button class="stream-button" onclick="selectStream('fancode')">Fancode</button>
+            <button class="stream-button" onclick="selectStream('willow')">Willow</button>
+            <button class="stream-button" onclick="selectStream('astro')">Astro</button>
+            <button class="stream-button" onclick="selectStream('jio')">Jio</button>
+        </div>
         <div data-shaka-player-container class="shaka-video-container">
             <video autoplay data-shaka-player id="video" poster="#"></video>
         </div>
@@ -122,22 +128,197 @@
         <div id="update-notification">Stream configuration updated</div>
         <div class="loading-spinner" id="loading-spinner"></div>
     </div>
-
-    <!-- ... (keep the existing script sources) ... -->
+    <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
     <script>
-        // ... (keep existing code) ...
+        let currentConfig = null;
+        let player = null;
+        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-        function showStreamSelection() {
-            document.getElementById('stream-selection').style.display = 'block';
+        class ConfigManager {
+            static async fetchLatest() {
+                try {
+                    const apiUrl = 'https://raw.githubusercontent.com/Shahid429/Link/refs/heads/main/links.json';
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) throw new Error('Failed to fetch config');
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching config:', error);
+                    throw error;
+                }
+            }
+
+            static async checkForUpdates() {
+                try {
+                    const newConfig = await this.fetchLatest();
+                    if (JSON.stringify(newConfig) !== JSON.stringify(currentConfig)) {
+                        console.log('Config updated, reloading player...');
+                        currentConfig = newConfig;
+                        this.showUpdateNotification();
+                        await PlayerManager.reinitialize();
+                    }
+                } catch (error) {
+                    console.error('Error checking for updates:', error);
+                }
+            }
+
+            static showUpdateNotification() {
+                const notification = document.getElementById('update-notification');
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
         }
 
-        function hideStreamSelection() {
-            document.getElementById('stream-selection').style.display = 'none';
+        class PlayerManager {
+            static showLoading() {
+                document.getElementById('loading-spinner').style.display = 'block';
+            }
+
+            static hideLoading() {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
+
+            static async initialize() {
+                this.showLoading();
+                try {
+                    currentConfig = await ConfigManager.fetchLatest();
+                    
+                    const video = document.getElementById('video');
+                    const videoContainer = document.querySelector('[data-shaka-player-container]');
+                    
+                    if (player) {
+                        await player.unload();
+                    }
+
+                    player = new shaka.Player(video);
+                    const ui = new shaka.ui.Overlay(player, videoContainer, video);
+
+                    player.configure({
+                        streaming: {
+                            bufferingGoal: 60,
+                            rebufferingGoal: 30,
+                            bufferBehind: 30,
+                            retryParameters: {
+                                timeout: 0,
+                                maxAttempts: 5,
+                                baseDelay: 1000,
+                                backoffFactor: 2,
+                                fuzzFactor: 0.5
+                            }
+                        },
+                        manifest: {
+                            retryParameters: {
+                                timeout: 0,
+                                maxAttempts: 5,
+                                baseDelay: 1000,
+                                backoffFactor: 2,
+                                fuzzFactor: 0.5
+                            },
+                            dash: {
+                                ignoreSuggestedPresentationDelay: true,
+                                clockSyncUri: ''
+                            }
+                        },
+                        abr: {
+                            enabled: true,
+                            defaultBandwidthEstimate: 1000000,
+                            switchInterval: 1
+                        }
+                    });
+
+                    player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+                        request.allowCrossSiteCredentials = false;
+                        if (request.headers) {
+                            delete request.headers['Origin'];
+                            delete request.headers['Referer'];
+                        }
+                    });
+
+                    player.addEventListener('error', function(event) {
+                        console.error('Error code', event.detail.code, 'object', event.detail);
+                        showError(`Player error: ${event.detail.message}`);
+                    });
+
+                    ui.configure({
+                        addBigPlayButton: true,
+                        addSeekBar: true,
+                        controlPanelElements: [
+                            'play_pause',
+                            'time_and_duration',
+                            'spacer',
+                            'mute',
+                            'volume',
+                            'quality',
+                            'fullscreen',
+                        ],
+                        overflowMenuButtons: [
+                            'quality',
+                            'captions',
+                            'language',
+                            'picture_in_picture'
+                        ]
+                    });
+
+                    // Initialize with the first available stream
+                    if (currentConfig) {
+                        const firstStream = Object.keys(currentConfig)[0];
+                        await this.switchStream(firstStream);
+                    }
+
+                    this.hideLoading();
+                    console.log('Player initialized successfully');
+                } catch (error) {
+                    this.hideLoading();
+                    console.error('Error initializing player:', error);
+                    showError(error.message);
+                }
+            }
+
+            static async switchStream(selectedStream) {
+                this.showLoading();
+                try {
+                    if (!currentConfig) {
+                        currentConfig = await ConfigManager.fetchLatest();
+                    }
+
+                    const manifestUri = currentConfig[selectedStream];
+                    
+                    if (!manifestUri) {
+                        throw new Error('Stream not found');
+                    }
+
+                    if (player) {
+                        await player.load(manifestUri);
+                    }
+
+                    this.hideLoading();
+                } catch (error) {
+                    this.hideLoading();
+                    console.error('Error switching stream:', error);
+                    showError(error.message);
+                }
+            }
+
+            static async reinitialize() {
+                if (player) {
+                    await player.unload();
+                }
+                await this.initialize();
+            }
         }
 
-        function selectStream(path) {
-            hideStreamSelection();
-            PlayerManager.initialize(path);
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            PlayerManager.hideLoading();
+        }
+
+        function selectStream(stream) {
+            PlayerManager.switchStream(stream);
         }
 
         // Start periodic updates
@@ -145,12 +326,27 @@
 
         // Initial load
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => showStreamSelection());
+            document.addEventListener('DOMContentLoaded', () => PlayerManager.initialize());
         } else {
-            showStreamSelection();
+            PlayerManager.initialize();
         }
 
-        // ... (keep existing code) ...
+        // Additional CORS handling
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                if (url.includes('dai.google.com')) {
+                    options.mode = 'cors';
+                    options.credentials = 'omit';
+                    if (!options.headers) {
+                        options.headers = {};
+                    }
+                    delete options.headers['Origin'];
+                    delete options.headers['Referer'];
+                }
+                return originalFetch(url, options);
+            };
+        })();
     </script>
 </body>
 </html>
