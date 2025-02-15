@@ -1,112 +1,145 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <meta name="description" content="Live Cricket Matches - Watch cricket matches live on Fancode">
-    <link rel="shortcut icon" href="https://drmlive.in/sports/fancode.png" />
-    <title>Live Cricket Matches</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Live Matches</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
         :root {
-            --primary-color: #ff3700;
-            --text-color: #ffffff;
-            --bg-color: #000000;
-            --card-bg: #1a1a1a;
-            --hover-color: #2a2a2a;
-        }
-
-        [data-theme="light"] {
-            --text-color: #000000;
-            --bg-color: #ffffff;
-            --card-bg: #f5f5f5;
-            --hover-color: #e5e5e5;
+            --primary: #2563eb;
+            --secondary: #3b82f6;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --error: #ef4444;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: all 0.3s ease;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
         }
 
-        h1 {
-            color: var(--primary-color);
-            font-family: 'Montserrat', sans-serif;
+        .title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .theme-toggle {
-            background: none;
-            border: 2px solid var(--primary-color);
-            color: var(--text-color);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
+        .update-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
-        .file-container {
+        .telegram-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #0088cc;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .telegram-link:hover {
+            opacity: 0.9;
+        }
+
+        .matches-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            padding: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
-        .match-item {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+        .match-card {
+            background-color: var(--surface);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.2s;
         }
 
-        .match-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        .match-card:hover {
+            transform: translateY(-4px);
         }
 
-        .match-item img {
+        .match-image {
             width: 100%;
-            max-width: 200px;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            height: 200px;
+            object-fit: cover;
         }
 
-        .match-info {
-            margin: 15px 0;
+        .match-content {
+            padding: 1.5rem;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
         }
 
         .match-title {
-            font-weight: 700;
-            font-size: 1.1em;
-            margin-bottom: 10px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
-        .status-live {
-            color: #00ff00;
+        .match-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
             animation: pulse 1.5s infinite;
-        }
-
-        .status-upcoming {
-            color: #888;
         }
 
         @keyframes pulse {
@@ -115,114 +148,214 @@
             100% { opacity: 1; }
         }
 
-        .stream-button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .stream-button:hover {
-            opacity: 0.9;
-        }
-
-        .telegram-button {
-            display: inline-block;
-            background-color: #0088cc;
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: bold;
-            margin: 20px auto;
-        }
-
         @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
             .header {
                 flex-direction: column;
-                gap: 15px;
+                gap: 1rem;
+                text-align: center;
             }
-            
-            .file-container {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+
+            .matches-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Live Cricket Matches</h1>
-        <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Sports Live Matches</h1>
+            <span class="update-time" id="updateTime"></span>
+            <a href="https://t.me/+rQTz5VL8CRpjNTZl" class="telegram-link" target="_blank" rel="noopener noreferrer">
+                Join Telegram Channel
+            </a>
+        </header>
+
+        <main>
+            <div id="loadingIndicator" class="loading-indicator">
+                <div class="spinner"></div>
+                <p>Loading matches...</p>
+            </div>
+            <div class="matches-grid" id="matchesContainer"></div>
+        </main>
     </div>
-    
-    <a href="https://telegram.me/livecrichdofficial" class="telegram-button">Join Our Telegram Channel</a>
-    
-    <div class="file-container" id="matches"></div>
 
     <script>
-        // Theme Toggle Function
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
+        class MatchesApp {
+            constructor() {
+                this.matchesContainer = document.getElementById('matchesContainer');
+                this.loadingIndicator = document.getElementById('loadingIndicator');
+                this.updateTimeElement = document.getElementById('updateTime');
+                this.apiUrl = 'https://raw.githubusercontent.com/drmlive/sliv-live-events/main/sonyliv.json';
+                this.retryAttempts = 3;
+                this.retryDelay = 5000;
+            }
 
-        // Set Initial Theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+            async init() {
+                try {
+                    this.showLoading();
+                    await this.fetchMatchesWithRetry();
+                    this.hideLoading();
+                    this.renderMatches();
+                    this.updateLastUpdateTime();
+                    this.setupAutoRefresh();
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError('Failed to load matches. Please try again later.');
+                    console.error('Initialization failed:', error);
+                }
+            }
 
-        // Fetch and Display Matches
-        const playerURL = 'https://shz.al/mHYz/Player.html?dtv=';
-        const apiURL = 'https://raw.githubusercontent.com/drmlive/sliv-live-events/main/sonyliv.json';
+            showLoading() {
+                this.loadingIndicator.style.display = 'flex';
+                this.matchesContainer.style.display = 'none';
+            }
 
-        async function fetchMatches() {
-            try {
-                const response = await fetch(apiURL);
-                const data = await response.json();
-                const matchesContainer = document.getElementById('matches');
-                const processedMatches = new Set();
+            hideLoading() {
+                this.loadingIndicator.style.display = 'none';
+                this.matchesContainer.style.display = 'grid';
+            }
 
-                data.matches
-                    .sort((a, b) => {
-                        if (a.status.toLowerCase() === 'live' && b.status.toLowerCase() !== 'live') return -1;
-                        if (a.status.toLowerCase() !== 'live' && b.status.toLowerCase() === 'live') return 1;
-                        return 0;
-                    })
-                    .forEach(match => {
-                        if (!processedMatches.has(match.match_id)) {
-                            const statusClass = match.status.toLowerCase() === 'live' ? 'status-live' : 'status-upcoming';
-                            
-                            const matchElement = document.createElement('div');
-                            matchElement.className = 'match-item';
-                            matchElement.innerHTML = `
-                                <img src="${match.src}" alt="${match.title}">
+            async fetchMatchesWithRetry() {
+                for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
+                    try {
+                        const response = await fetch(this.apiUrl);
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        const data = await response.json();
+                        this.matches = data.matches;
+                        return;
+                    } catch (error) {
+                        if (attempt === this.retryAttempts) throw error;
+                        await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                    }
+                }
+            }
+
+            updateLastUpdateTime() {
+                const now = new Date();
+                const options = {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour12: true
+                };
+                this.updateTimeElement.textContent = `Last updated: ${now.toLocaleString('en-US', options)}`;
+            }
+
+            createMatchCard(match) {
+                const statusClass = match.isLive ? 'status-live' : 'status-upcoming';
+                const statusText = match.isLive ? 'LIVE' : 'Upcoming';
+
+                return `
+                    <article class="match-card" data-id="${match.contentId}">
+                        <div class="match-image-container">
+                            <img 
+                                src="${match.src}" 
+                                alt="${match.event_name}"
+                                class="match-image"
+                                loading="lazy"
+                                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E'"
+                            >
+                            <span class="category-badge">${match.event_category}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="match-content">
+                            <h2 class="match-title">${match.event_name}</h2>
+                            <div class="match-details">
                                 <div class="match-info">
-                                    <div class="match-title">${match.event_name}</div>
-                                    <p>${match.team_1} vs ${match.team_2}</p>
-                                    <p class="${statusClass}">${match.status}</p>
+                                    <span class="channel">${match.broadcast_channel}</span>
+                                    <span class="language">${match.audioLanguageName}</span>
                                 </div>
-                                <button class="stream-button" onclick="window.location.href='${playerURL}${match.adfree_url}'">
-                                    Watch Now
-                                </button>
-                            `;
-                            
-                            matchesContainer.appendChild(matchElement);
-                            processedMatches.add(match.match_id);
-                        }
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }
+
+            renderMatches() {
+                if (!this.matches?.length) {
+                    this.showError('No matches available at the moment.');
+                    return;
+                }
+
+                const sortedMatches = [...this.matches].sort((a, b) => {
+                    if (a.isLive && !b.isLive) return -1;
+                    if (!a.isLive && b.isLive) return 1;
+                    return 0;
+                });
+
+                this.matchesContainer.innerHTML = sortedMatches
+                    .map(match => this.createMatchCard(match))
+                    .join('');
+
+                this.addMatchCardListeners();
+            }
+
+            addMatchCardListeners() {
+                const cards = document.querySelectorAll('.match-card');
+                cards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        const matchId = card.dataset.id;
+                        // Handle match card click - can be used for future functionality
+                        console.log(`Match ${matchId} clicked`);
                     });
-            } catch (error) {
-                console.error('Error fetching matches:', error);
+                });
+            }
+
+            showError(message) {
+                this.matchesContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>${message}</p>
+                        <button onclick="app.init()">Try Again</button>
+                    </div>
+                `;
+            }
+
+            setupAutoRefresh() {
+                setInterval(() => this.refreshData(), 5 * 60 * 1000); // Refresh every 5 minutes
+            }
+
+            async refreshData() {
+                try {
+                    await this.fetchMatchesWithRetry();
+                    this.renderMatches();
+                    this.updateLastUpdateTime();
+                } catch (error) {
+                    console.error('Refresh failed:', error);
+                    // Silent fail on refresh - don't show error to user
+                }
             }
         }
 
-        fetchMatches();
+        // Initialize the app
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new MatchesApp();
+            app.init();
+        });
+
+        // Handle visibility change to refresh data when tab becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && app) {
+                app.refreshData();
+            }
+        });
+
+        // Handle online/offline status
+        window.addEventListener('online', () => {
+            if (app) app.init();
+        });
+
+        window.addEventListener('offline', () => {
+            if (app) app.showError('You are currently offline. Please check your internet connection.');
+        });
     </script>
 </body>
 </html>
