@@ -3,8 +3,8 @@ class MatchesApp {
         this.matchesContainer = document.getElementById('matchesContainer');
         this.loadingIndicator = document.getElementById('loadingIndicator');
         this.updateTimeElement = document.getElementById('updateTime');
-        this.apiUrl = 'https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json';
-        this.playerURL = 'https://shz.al/Sffb/livecricplayer.html?dtv=';
+        this.apiUrl = 'https://raw.githubusercontent.com/drmlive/sliv-live-events/main/sonyliv.json';
+        this.playerURL = 'https://shz.al/mHYz/Player.html?dtv=';
         this.retryAttempts = 3;
         this.retryDelay = 5000;
         this.matches = [];
