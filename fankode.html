@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fancode Matches - Watch live sports events">
+    <title>Enhanced Fancode Matches</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Tailwind CSS */
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
+        :root {
+            --primary-bg: linear-gradient(to bottom right, #111827, #000000);
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --primary-text: #ffffff;
+            --secondary-text: #e5e7eb;
+            --accent-color: #f97316;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            background: var(--primary-bg);
+            transition: all var(--transition-speed) ease;
+            color: var(--primary-text);
+        }
+
+        .light-theme {
+            --primary-bg: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --primary-text: #1f2937;
+            color: var(--primary-text);
+        }
+
+        .card {
+            @apply bg-card p-6 rounded-xl shadow-md transition-transform transform hover:scale-105;
+        }
+
+        .light-theme .card {
+            @apply bg-white;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .backdrop-blur {
+            backdrop-filter: blur(8px);
+            background-color: var(--card-bg);
+        }
+
+        .filters-container {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 25px;
+            background-color: #1a1a1a;
+            border-radius: 25px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 21px;
+            height: 21px;
+            background-color: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+        }
+
+        .light-theme .theme-toggle {
+            background-color: #4f46e5;
+        }
+
+        .light-theme .theme-toggle::after {
+            transform: translateX(25px);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-pulse,
+            .animate-spin,
+            .card {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            button,
+            select,
+            input {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div id="loading" role="progressbar" aria-label="Loading matches" class="min-h-screen flex items-center justify-center bg-black">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-orange-500"></div>
+    </div>
+
+    <div id="error-message" role="alert" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg"></div>
+
+    <main id="content" class="p-6 hidden">
+        <div class="max-w-7xl mx-auto relative">
+            <div class="flex justify-end mb-4">
+                <div id="themeToggle" class="theme-toggle" role="button" aria-label="Toggle theme" tabindex="0"></div>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl font-bold text-center text-orange-500 mb-8">
+                Fancode Matches
+            </h1>
+
+            <button
+                onclick="handleTelegramClick()"
+                class="block mx-auto mb-8 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-full transition-all duration-300"
+                aria-label="Join Telegram Channel"
+            >
+                Join Telegram
+            </button>
+
+            <div class="filters-container">
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        aria-label="Search matches"
+                        placeholder="Search matches..." 
+                        class="px-4 py-2 rounded-lg bg-gray-800 text-white"
+                    >
+                    <select 
+                        id="statusFilter" 
+                        class="px-4 py-2 rounded-lg bg-gray-800 text-white"
+                        aria-label="Filter matches by status"
+                    >
+                        <option value="all">All Status</option>
+                        <option value="live">Live</option>
+                        <option value="upcoming">Upcoming</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="matches-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Matches will be inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Storage utility with fallback
+        const Storage = {
+            data: new Map(),
+            set(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    this.data.set(key, value);
+                }
+            },
+            get(key) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                } catch (e) {
+                    return this.data.get(key) || null;
+                }
+            }
+        };
+
+        // Constants
+        const API_URL = 'https://raw.githubusercontent.com/drmlive/fancode-live-events/main/fancode.json';
+        const PLAYER_URL = 'https://shz.al/mHYz/Player.html?dtv=';
+        const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+        // State management
+        let currentMatches = [];
+
+        // Theme management
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            Storage.set('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+        }
+
+        // Initialize theme
+        if (Storage.get('theme') === 'light') {
+            document.body.classList.add('light-theme');
+        }
+
+        // Debounce utility
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Filter management
+        function handleFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const filteredMatches = currentMatches.filter(match => {
+                const matchesSearch = match.title.toLowerCase().includes(searchTerm) ||
+                                    match.team_1.toLowerCase().includes(searchTerm) ||
+                                    match.team_2.toLowerCase().includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' || 
+                                    match.status.toLowerCase() === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+            });
+            
+            renderMatches(filteredMatches);
+        }
+
+        // Match card creation with sanitization
+        function sanitizeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function createMatchCard(match) {
+            const sanitizedMatch = {
+                title: sanitizeHTML(match.title),
+                team_1: sanitizeHTML(match.team_1),
+                team_2: sanitizeHTML(match.team_2),
+                status: sanitizeHTML(match.status),
+                src: sanitizeHTML(match.src),
+                adfree_url: sanitizeHTML(match.adfree_url)
+            };
+
+            return `
+                <div class="backdrop-blur rounded-xl p-6 card-transition relative">
+                    <img
+                        src="${sanitizedMatch.src}"
+                        alt="${sanitizedMatch.title}"
+                        class="w-full h-48 object-cover rounded-lg mb-4 lazy"
+                        loading="lazy"
+                    />
+                    <h3 class="text-xl font-bold mb-2">${sanitizedMatch.title}</h3>
+                    <p class="text-gray-300 mb-2">${sanitizedMatch.team_1} vs ${sanitizedMatch.team_2}</p>
+                    <p class="text-sm mb-4 ${
+                        sanitizedMatch.status.toLowerCase() === 'live'
+                            ? 'text-yellow-400 animate-pulse'
+                            : 'text-gray-400'
+                    }">
+                        ${sanitizedMatch.status}
+                    </p>
+                    <div class="flex flex-col gap-2">
+                        <button
+                            onclick="handleWatchClick('${sanitizedMatch.adfree_url}')"
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition"
+                            aria-label="Watch ${sanitizedMatch.title}"
+                        >
+                            Watch Now
+                        </button>
+                        <button 
+                            onclick="shareMatch('${sanitizedMatch.title}', '${sanitizedMatch.adfree_url}')"
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition"
+                            aria-label="Share ${sanitizedMatch.title}"
+                        >
+                            Share Match
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Data fetching with error handling
+        async function fetchMatchesWithCache() {
+            try {
+                const now = Date.now();
+                const cached = Storage.get('matches');
+                
+                if (cached && now - cached.timestamp < CACHE_DURATION) {
+                    return cached.data;
+                }
+                
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                Storage.set('matches', {
+                    data: data.matches,
+                    timestamp: now
+                });
+                
+                return data.matches;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                throw error;
+            }
+        }
+
+        function renderMatches(matches) {
+            const matchesGrid = document.getElementById('matches-grid');
+            matchesGrid.innerHTML = matches.map(match => createMatchCard(match)).join('');
+        }
+
+        // Event handlers
+        function handleWatchClick(adfreeUrl) {
+            if (adfreeUrl) {
+                window.location.href = `${PLAYER_URL}${adfreeUrl}`;
+            }
+        }
+
+        async function shareMatch(title, url) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        url: url
+                    });
+                } catch (err) {
+                    console.error('Share failed:', err);
+                }
+            } else {
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = url;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                showNotification('Link copied to clipboard!');
+            }
+        }
+
+        function handleTelegramClick() {
+            if (confirm("Join Our Telegram Channel @KashmirFC")) {
+                window.location.href = "https://t.me/KashmirFC";
+            }
+        }
+
+        function showNotification(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+            setTimeout(() => {
+                errorElement.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Initialize
+        async function init() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('content').classList.add('hidden');
+                document.getElementById('error-message').classList.add('hidden');
+
+                const matches = await fetchMatchesWithCache();
+                currentMatches = matches.sort((a, b) => {
+                    if (a.status.toLowerCase() === 'live' && b.status.toLowerCase() !== 'live') return -1;
+                    if (a.status.toLowerCase() !== 'live' && b.status.toLowerCase() === 'live') return 1;
+                    return 0;
+                });
+
+                handleFilters();
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').classList.add('hidden');
+                showNotification('Failed to load matches. Please try again later.');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('searchInput').addEventListener('input', debounce(handleFilters, 300));
+        document.getElementById('statusFilter').addEventListener('change', handleFilters);
+
+        // Start the application
+        init();
+
+        // Refresh data periodically
+        setInterval(init, 60000); // Refresh every minute
+    </script>
+</body>
+</html>
