@@ -15,7 +15,6 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background-color: black;
         }
 
         #player-container {
@@ -29,52 +28,17 @@
         }
 
         .shaka-video-container {
-            width: 100%;
             height: 100%;
+            width: 100%;
         }
 
         video {
-            width: 100%;
             height: 100%;
-            object-fit: cover;
+            width: 100%;
         }
 
         .shaka-spinner-container { 
             display: none; 
-        }
-
-        .shaka-overflow-menu {
-            background-color: rgb(41, 41, 163);
-            color: rgb(153, 153, 153);
-        }
-        
-        .shaka-overflow-menu button:hover {
-            background-color: rgb(45, 45, 45);
-        }
-        
-        .shaka-overflow-button-label {
-            color: rgb(245, 245, 245);
-        }
-        
-        .shaka-current-selection-span {
-            color: rgb(202, 202, 202);
-        }
-        
-        .material-icons-round {
-            color: rgb(230, 230, 230);
-        }
-        
-        .shaka-settings-menu {
-            background-color: rgb(35, 35, 35);
-            color: rgb(255, 255, 255);
-        }
-        
-        .shaka-settings-menu button {
-            color: rgb(255, 255, 255);
-        }
-        
-        .shaka-settings-menu button:hover {
-            background-color: rgb(45, 45, 45);
         }
 
         #error-message {
@@ -124,25 +88,23 @@
 </head>
 <body>
     <div id="player-container">
-        <div data-shaka-player-container>
-            <video data-shaka-player autoplay id="video"></video>
+        <div data-shaka-player-container class="shaka-video-container">
+            <video autoplay data-shaka-player id="video" poster="#"></video>
         </div>
         <div id="error-message"></div>
         <div id="update-notification">Stream configuration updated</div>
         <div class="loading-spinner" id="loading-spinner"></div>
     </div>
-
     <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
     <script>
         let currentConfig = null;
         let player = null;
-        let ui = null;
-        const REFRESH_INTERVAL = 5 * 60 * 1000;
+        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
         class ConfigManager {
             static async fetchLatest() {
                 try {
-                    const apiUrl = 'https://raw.githubusercontent.com/Shahid429/Link/refs/heads/main/links.json';
+                    const apiUrl = 'https://api.github.com/repos/Shahid429/Link/contents/m3u8Links.json';
                     const response = await fetch(apiUrl, {
                         headers: {
                             'Accept': 'application/vnd.github.v3.raw'
@@ -211,33 +173,50 @@
                     }
 
                     if (shaka.Player.isBrowserSupported()) {
-                        shaka.polyfill.installAll();
-                        
                         const video = document.getElementById('video');
-                        const container = document.querySelector('[data-shaka-player-container]');
-
+                        const videoContainer = document.querySelector('[data-shaka-player-container]');
+                        
                         player = new shaka.Player(video);
-                        ui = new shaka.ui.Overlay(player, container, video);
-
-                        const uiConfig = {
-                            'controlPanelElements': ["play_pause", "mute", "volume", "spacer", "time_and_duration", "quality", "fullscreen", "overflow_menu"],
-                            'volumeBarColors': {
-                                base: 'rgba(63, 187, 1, 1)',
-                                level: 'rgb(255, 69, 0)'
-                            },
-                            'seekBarColors': {
-                                base: 'rgb(41, 41, 163)',
-                                buffered: 'rgb(35, 99, 3)',
-                                played: 'rgba(63, 187, 1, 1)'
-                            }
-                        };
-                        ui.configure(uiConfig);
+                        const ui = new shaka.ui.Overlay(player, videoContainer, video);
 
                         player.configure({
                             streaming: {
                                 bufferingGoal: 60,
                                 rebufferingGoal: 30,
-                                bufferBehind: 30
+                                bufferBehind: 30,
+                                retryParameters: {
+                                    timeout: 0,
+                                    maxAttempts: 5,
+                                    baseDelay: 1000,
+                                    backoffFactor: 2,
+                                    fuzzFactor: 0.5
+                                }
+                            },
+                            manifest: {
+                                retryParameters: {
+                                    timeout: 0,
+                                    maxAttempts: 5,
+                                    baseDelay: 1000,
+                                    backoffFactor: 2,
+                                    fuzzFactor: 0.5
+                                },
+                                dash: {
+                                    ignoreSuggestedPresentationDelay: true,
+                                    clockSyncUri: ''
+                                }
+                            },
+                            abr: {
+                                enabled: true,
+                                defaultBandwidthEstimate: 1000000,
+                                switchInterval: 1
+                            }
+                        });
+
+                        player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+                            request.allowCrossSiteCredentials = false;
+                            if (request.headers) {
+                                delete request.headers['Origin'];
+                                delete request.headers['Referer'];
                             }
                         });
 
@@ -247,7 +226,26 @@
                         });
 
                         await player.load(manifestUri);
-                        video.play();
+
+                        ui.configure({
+                            addBigPlayButton: true,
+                            addSeekBar: true,
+                            controlPanelElements: [
+                                'play_pause',
+                                'time_and_duration',
+                                'spacer',
+                                'mute',
+                                'volume',
+                                'quality',
+                                'fullscreen',
+                            ],
+                            overflowMenuButtons: [
+                                'quality',
+                                'captions',
+                                'language',
+                                'picture_in_picture'
+                            ]
+                        });
 
                         console.log('Player initialized successfully');
                         this.hideLoading();
@@ -264,7 +262,6 @@
             static async reinitialize() {
                 if (player) {
                     await player.unload();
-                    player.destroy();
                 }
                 await this.initialize();
             }
@@ -277,14 +274,17 @@
             PlayerManager.hideLoading();
         }
 
+        // Start periodic updates
         setInterval(() => ConfigManager.checkForUpdates(), REFRESH_INTERVAL);
 
+        // Initial load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => PlayerManager.initialize());
         } else {
             PlayerManager.initialize();
         }
 
+        // Additional CORS handling
         (function() {
             const originalFetch = window.fetch;
             window.fetch = function(url, options = {}) {
