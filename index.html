@@ -3,22 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Brand Showcase - Discover our premium entertainment platforms">
     <title>Brand Showcase</title>
-    
+
     <!-- External Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    
+
     <style>
+        /* Tailwind CSS */
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
         :root {
             --primary-bg: #0a0a0a;
             --card-bg: rgba(255, 255, 255, 0.03);
             --hover-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #f97316;
         }
 
         body {
             background-color: var(--primary-bg);
+            color: white;
             min-height: 100vh;
             overflow-x: hidden;
         }
