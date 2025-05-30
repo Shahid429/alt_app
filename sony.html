@@ -1,20 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sports Live Matches</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #3b82f6;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --background: #f9fafb;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            background-color: var(--surface);
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            z-index: 100;
+            box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+            transition: background-color 0.3s;
+        }
+
+        .title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .update-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-right: 1rem;
+            white-space: nowrap;
+        }
+
+        .telegram-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #0088cc;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .telegram-link:hover {
+            opacity: 0.9;
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: 2px solid var(--primary);
+            border-radius: 0.5rem;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0.4rem 1rem;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--primary);
+            color: var(--text);
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        /* Fade-in animation for match cards */
+        .match-card {
+            background-color: var(--surface);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.2s, opacity 0.6s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .match-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .match-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .match-image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background-color: #334155; /* fallback background */
+        }
+
+        .match-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay-play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .match-card:hover .overlay-play-icon {
+            opacity: 1;
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-live {
+            background-color: var(--success);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-upcoming {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .match-content {
+            padding: 1.5rem;
+        }
+
+        .match-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .match-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .match-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stream-button {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            margin-top: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .stream-button:hover {
+            background-color: var(--secondary);
+        }
+
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--text-secondary);
+        }
+
+        /* Skeleton loader styles */
+        .skeleton {
+            animation: shimmer 1.5s infinite linear;
+            background: linear-gradient(
+                to right,
+                #e2e8f0 4%,
+                #f8fafc 25%,
+                #e2e8f0 36%
+            );
+            background-size: 1000px 100%;
+            border-radius: 8px;
+        }
+
+        .skeleton-img {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin-bottom: 0.5rem;
+        }
+
+        .skeleton-badge {
+            width: 80px;
+            height: 20px;
+            margin-bottom: 0.5rem;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .error-message {
+            text-align: center;
+            color: var(--error);
+            padding: 2rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .matches-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .match-card {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .match-image-container {
+                height: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1 class="title">Sports Live Matches</h1>
             <span class="update-time" id="updateTime"></span>
-            <a href="https://t.me/KashmirFC" class="telegram-link" target="_blank" rel="noopener noreferrer">
-                Join Telegram Channel
-            </a>
+            <a
+                href="https://t.me/KashmirFC"
+                class="telegram-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Join Telegram Channel</a
+            >
+            <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle theme">
+                Light Mode
+            </button>
         </header>
 
         <main>
@@ -27,10 +382,225 @@
     </div>
 
     <script>
-        if(confirm("Join Our Telegram Channel @KashmirFC")) {
-            window.location.href = "https://t.me/KashmirFC";
+        const PLAYER_URL = 'https://p.apeiria.net/~player/fcplayer.html?dtv=';
+
+        class MatchesApp {
+            constructor() {
+                this.matchesContainer = document.getElementById('matchesContainer');
+                this.loadingIndicator = document.getElementById('loadingIndicator');
+                this.updateTimeElement = document.getElementById('updateTime');
+                this.apiUrl =
+                    'https://raw.githubusercontent.com/drmlive/sliv-live-events/main/sonyliv.json';
+                this.retryAttempts = 3;
+                this.retryDelay = 5000;
+                this.matches = [];
+                this.lastUpdateTime = null;
+            }
+
+            async init() {
+                try {
+                    this.showLoading();
+                    await this.fetchMatchesWithRetry();
+                    this.hideLoading();
+                    this.renderMatches();
+                    this.updateLastUpdateTime();
+                    this.setupAutoRefresh();
+                    this.observeMatchCards();
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError('Failed to load matches. Please try again later.');
+                    console.error('Initialization failed:', error);
+                }
+            }
+
+            showLoading() {
+                this.loadingIndicator.style.display = 'flex';
+                this.matchesContainer.style.display = 'grid';
+                // Show skeleton loaders while loading
+                this.matchesContainer.innerHTML = this.getSkeletonHTML(6);
+            }
+
+            hideLoading() {
+                this.loadingIndicator.style.display = 'none';
+            }
+
+            getSkeletonHTML(count) {
+                return Array(count)
+                    .fill(
+                        `
+                    <article class="match-card skeleton">
+                        <div class="match-image-container skeleton-img"></div>
+                        <div class="match-content">
+                            <div class="skeleton-text" style="width: 70%;"></div>
+                            <div class="skeleton-text" style="width: 40%;"></div>
+                            <div class="skeleton-badge"></div>
+                        </div>
+                    </article>
+                `
+                    )
+                    .join('');
+            }
+
+            async fetchMatchesWithRetry() {
+                for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
+                    try {
+                        const response = await fetch(this.apiUrl);
+                        if (!response.ok)
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        const data = await response.json();
+                        this.matches = data.matches;
+                        this.lastUpdateTime = data['last update time'];
+                        this.telegramLink = data.telegram;
+                        return;
+                    } catch (error) {
+                        if (attempt === this.retryAttempts) throw error;
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, this.retryDelay)
+                        );
+                    }
+                }
+            }
+
+            updateLastUpdateTime() {
+                if (this.lastUpdateTime) {
+                    this.updateTimeElement.textContent = `Last updated: ${this.lastUpdateTime}`;
+                } else {
+                    const now = new Date();
+                    const options = {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour12: true,
+                    };
+                    this.updateTimeElement.textContent = `Last updated: ${now.toLocaleString(
+                        'en-US',
+                        options
+                    )}`;
+                }
+            }
+
+            createMatchCard(match) {
+                const statusClass = match.isLive ? 'status-live' : 'status-upcoming';
+                const statusText = match.isLive ? 'LIVE' : 'Upcoming';
+
+                return `
+                <article class="match-card" data-id="${match.contentId}">
+                    <div class="match-image-container">
+                        <img
+                            src="${match.src}"
+                            alt="${match.event_name}"
+                            class="match-image"
+                            loading="lazy"
+                            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E'"
+                        />
+                        <div class="overlay-play-icon" aria-hidden="true">
+                            <svg fill="white" height="24" width="24" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </div>
+                        <span class="category-badge">${match.event_category}</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="match-content">
+                        <h2 class="match-title">${match.match_name || match.event_name}</h2>
+                        <div class="match-details">
+                            <div class="match-info">
+                                <span class="channel">${match.broadcast_channel}</span>
+                                <span class="language">${match.audioLanguageName}</span>
+                            </div>
+                        </div>
+                        ${
+                            match.isLive
+                                ? `
+                            <button class="stream-button" onclick="app.playMatch('${match.contentId}')">
+                                ▶ Watch Live
+                            </button>
+                        `
+                                : ''
+                        }
+                    </div>
+                </article>`;
+            }
+
+            renderMatches() {
+                this.matchesContainer.innerHTML = this.matches
+                    .map((match) => this.createMatchCard(match))
+                    .join('');
+            }
+
+            showError(message) {
+                this.matchesContainer.innerHTML = `<p class="error-message">${message}</p>`;
+            }
+
+            playMatch(contentId) {
+                const url = PLAYER_URL + contentId;
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+
+            setupAutoRefresh() {
+                // Refresh matches every 2 minutes
+                setInterval(async () => {
+                    try {
+                        await this.fetchMatchesWithRetry();
+                        this.renderMatches();
+                        this.updateLastUpdateTime();
+                        this.observeMatchCards();
+                    } catch (error) {
+                        console.error('Auto-refresh failed:', error);
+                    }
+                }, 120000);
+            }
+
+            observeMatchCards() {
+                const cards = document.querySelectorAll('.match-card');
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                            }
+                        });
+                    },
+                    {
+                        threshold: 0.1,
+                    }
+                );
+                cards.forEach((card) => {
+                    observer.observe(card);
+                });
+            }
         }
+
+        // Initialize the app and attach to window for button onclicks
+        const app = new MatchesApp();
+        app.init();
+
+        // Theme toggle logic
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const rootElement = document.documentElement;
+
+        // Load theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            rootElement.setAttribute('data-theme', savedTheme);
+            themeToggleBtn.textContent = savedTheme === 'light' ? 'Dark Mode' : 'Light Mode';
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = rootElement.getAttribute('data-theme');
+            if (currentTheme === 'light') {
+                rootElement.removeAttribute('data-theme');
+                themeToggleBtn.textContent = 'Light Mode';
+                localStorage.removeItem('theme');
+            } else {
+                rootElement.setAttribute('data-theme', 'light');
+                themeToggleBtn.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        });
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
